@@ -1,0 +1,212 @@
+@{
+    ViewData["Title"] = "Kütüphane Otomasyonu";
+}
+
+<!-- Hero Section with Quote -->
+<div class="hero-section bg-primary text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Kütüphane Otomasyonu</h1>
+                <blockquote class="blockquote mb-4">
+                    <p class="mb-0 fs-4">
+                        "Kitaplar olmadan yaşayamam. Onlar benim için hava, su ve yiyecek kadar gerekli."
+                    </p>
+                    <footer class="blockquote-footer text-light mt-2">
+                        <cite title="Source Title">Albert Einstein</cite>
+                    </footer>
+                </blockquote>
+                <p class="lead">
+                    Bilgiye ulaşmanın en kolay yolu kitaplardır. Kütüphanemizde binlerce eser sizi bekliyor.
+                </p>
+            </div>
+            <div class="col-lg-4 text-center">
+                <i class="fas fa-book-open display-1 opacity-75"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Section -->
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4">
+                        <i class="fas fa-search me-2"></i>
+                        Kitap Ara
+                    </h3>
+                    <form asp-controller="Home" asp-action="Search" method="post">
+                        <div class="input-group input-group-lg">
+                            <input type="text" name="searchTerm" class="form-control" 
+                                   placeholder="Kitap adı, yazar, kategori veya ISBN ile arayın..." 
+                                   value="@ViewBag.SearchTerm" required>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search me-1"></i>
+                                Ara
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Results -->
+@if (ViewBag.SearchResults != null)
+{
+    <div class="container mb-5">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Arama Sonuçları (@ViewBag.SearchResults.Count sonuç)
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.SearchResults.Count > 0)
+                        {
+                            <div class="row">
+                                @foreach (var book in ViewBag.SearchResults)
+                                {
+                                    <div class="col-md-6 col-lg-4 mb-3">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-body">
+                                                <h5 class="card-title text-primary">@book.Title</h5>
+                                                <p class="card-text">
+                                                    <strong>Yazar:</strong> @book.Author<br>
+                                                    <strong>Kategori:</strong> @book.Category<br>
+                                                    <strong>ISBN:</strong> @book.Isbn
+                                                </p>
+                                                <a asp-controller="Book" asp-action="Details" asp-route-id="@book.BookId" 
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i>
+                                                    Detayları Gör
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-warning text-center">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                Arama kriterlerinize uygun kitap bulunamadı.
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Carousel Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Neden Okumalısınız?</h2>
+    <div id="readingCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-indicators">
+            <button type="button" data-bs-target="#readingCarousel" data-bs-slide-to="0" class="active"></button>
+            <button type="button" data-bs-target="#readingCarousel" data-bs-slide-to="1"></button>
+            <button type="button" data-bs-target="#readingCarousel" data-bs-slide-to="2"></button>
+        </div>
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                             class="d-block w-100 rounded" alt="Kütüphane">
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Bilgi Güçtür</h3>
+                        <p class="lead">Her kitap size yeni bir dünya açar. Bilgi birikiminizi artırın, hayal gücünüzü genişletin.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                             class="d-block w-100 rounded" alt="Okuma">
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Kendinizi Geliştirin</h3>
+                        <p class="lead">Okuma alışkanlığı kazanarak kelime dağarcığınızı genişletin, analitik düşünme becerinizi artırın.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <img src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                             class="d-block w-100 rounded" alt="Öğrenme">
+                    </div>
+                    <div class="col-md-6">
+                        <h3>Hayat Boyu Öğrenin</h3>
+                        <p class="lead">Öğrenme hiçbir zaman bitmez. Kitaplar, sürekli öğrenme yolculuğunuzda en iyi arkadaşlarınızdır.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#readingCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#readingCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Kolay Arama</h5>
+                    <p class="card-text">İstediğiniz kitabı ISBN, yazar veya başlık ile kolayca bulun.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Hızlı Ödünç</h5>
+                    <p class="card-text">Online sistem ile kitap ödünç alma işlemlerinizi hızlıca tamamlayın.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-bell fa-3x text-warning mb-3"></i>
+                    <h5 class="card-title">Rezervasyon</h5>
+                    <p class="card-text">İstediğiniz kitap mevcut değilse rezervasyon yapın, müsait olunca haber verelim.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="bg-light py-5">
+    <div class="container text-center">
+        <h2 class="mb-3">Hemen Başlayın!</h2>
+        <p class="lead mb-4">Kütüphanemizdeki binlerce eserden yararlanmaya başlamak için üye olun.</p>
+        <a asp-controller="Member" asp-action="Create" class="btn btn-primary btn-lg me-3">Üye Ol</a>
+        <a asp-controller="Book" asp-action="Index" class="btn btn-outline-primary btn-lg">Kitapları Görüntüle</a>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+}
+

@@ -1,0 +1,104 @@
+@model KutuphaneOtomasyonu.Models.User
+@{
+    ViewData["Title"] = "Kullanıcı Sil";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Kullanıcı Sil
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Dikkat!</strong> Bu kullanıcıyı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user me-1"></i>
+                                    Kullanıcı Adı
+                                </label>
+                                <p class="form-control-plaintext">@Model.Username</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    E-posta
+                                </label>
+                                <p class="form-control-plaintext">@Model.Email</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-id-card me-1"></i>
+                            Ad Soyad
+                        </label>
+                        <p class="form-control-plaintext">@Model.FullName</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-tag me-1"></i>
+                                    Rol
+                                </label>
+                                <p class="form-control-plaintext">
+                                    @if (Model.Role == KutuphaneOtomasyonu.Models.UserRole.Admin)
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-crown me-1"></i>
+                                            Yönetici
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-user me-1"></i>
+                                            Kullanıcı
+                                        </span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-plus me-1"></i>
+                                    Oluşturulma Tarihi
+                                </label>
+                                <p class="form-control-plaintext">@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="UserId" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                İptal
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i>
+                                Kullanıcıyı Sil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

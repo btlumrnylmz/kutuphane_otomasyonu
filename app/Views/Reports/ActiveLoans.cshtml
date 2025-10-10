@@ -1,0 +1,35 @@
+@model IEnumerable<KutuphaneOtomasyonu.Controllers.ActiveLoanRow>
+@{
+    ViewData["Title"] = "Aktif Ödünçler";
+}
+
+<h2>Aktif Ödünçler</h2>
+<hr />
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Üye</th>
+            <th>Kitap</th>
+            <th>Vade</th>
+            <th>Gecikme (gün)</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model)
+    {
+        <tr>
+            <td>@r.member_name</td>
+            <td>@r.book_title</td>
+            <td>@r.due_at</td>
+            <td>@r.delay_days</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-controller="Reports" asp-action="Index">Geri Dön</a>
+
+
+
+

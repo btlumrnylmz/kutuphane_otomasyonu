@@ -1,0 +1,201 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
+@model KutuphaneOtomasyonu.Models.Book
+@{
+    ViewData["Title"] = "Kitap Detayı";
+    var isAdmin = AuthService.IsAdmin();
+    var isLoggedIn = AuthService.IsLoggedIn();
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-book me-2"></i>
+                        @Model.Title
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-4">
+                                <h5 class="text-primary">Kitap Bilgileri</h5>
+                                <hr>
+                                <dl class="row">
+                                    <dt class="col-sm-3">
+                                        <i class="fas fa-barcode me-1"></i>
+                                        ISBN
+                                    </dt>
+                                    <dd class="col-sm-9">@Model.Isbn</dd>
+                                    
+                                    <dt class="col-sm-3">
+                                        <i class="fas fa-user me-1"></i>
+                                        Yazar
+                                    </dt>
+                                    <dd class="col-sm-9">@Model.Author</dd>
+                                    
+                                    <dt class="col-sm-3">
+                                        <i class="fas fa-calendar me-1"></i>
+                                        Yayın Yılı
+                                    </dt>
+                                    <dd class="col-sm-9">@(Model.PublishYear?.ToString() ?? "Belirtilmemiş")</dd>
+                                    
+                                    <dt class="col-sm-3">
+                                        <i class="fas fa-tags me-1"></i>
+                                        Kategori
+                                    </dt>
+                                    <dd class="col-sm-9">
+                                        <span class="badge bg-info">@Model.Category</span>
+                                    </dd>
+                                    
+                                    @if (!string.IsNullOrEmpty(Model.Description))
+                                    {
+                                        <dt class="col-sm-3">
+                                            <i class="fas fa-align-left me-1"></i>
+                                            Açıklama
+                                        </dt>
+                                        <dd class="col-sm-9">@Model.Description</dd>
+                                    }
+                                </dl>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                                    <h6 class="card-title">Kitap Durumu</h6>
+                                    @{
+                                        var availableCopies = Model.Copies?.Count(c => c.Status == KutuphaneOtomasyonu.Models.CopyStatus.Available) ?? 0;
+                                        var totalCopies = Model.Copies?.Count ?? 0;
+                                    }
+                                    
+                                    @if (availableCopies > 0)
+                                    {
+                                        <div class="alert alert-success">
+                                            <i class="fas fa-check-circle me-1"></i>
+                                            <strong>@availableCopies</strong> kopya müsait
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-1"></i>
+                                            Şu anda müsait kopya yok
+                                        </div>
+                                    }
+                                    
+                                    <small class="text-muted">
+                                        Toplam @totalCopies kopya
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (isAdmin)
+                    {
+                        <div class="mt-4">
+                            <h5 class="text-primary">Kopya Detayları (Yönetici)</h5>
+                            <hr>
+                            @if (Model.Copies != null && Model.Copies.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="table-dark">
+                                            <tr>
+                                                <th>Kopya No</th>
+                                                <th>Raf Konumu</th>
+                                                <th>Durum</th>
+                                                <th>Eklenme Tarihi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var copy in Model.Copies)
+                                            {
+                                                <tr>
+                                                    <td>@copy.CopyNumber</td>
+                                                    <td>@(copy.ShelfLocation ?? "Belirtilmemiş")</td>
+                                                    <td>
+                                                        @switch (copy.Status)
+                                                        {
+                                                            case KutuphaneOtomasyonu.Models.CopyStatus.Available:
+                                                                <span class="badge bg-success">
+                                                                    <i class="fas fa-check me-1"></i>
+                                                                    Müsait
+                                                                </span>
+                                                                break;
+                                                            case KutuphaneOtomasyonu.Models.CopyStatus.Loaned:
+                                                                <span class="badge bg-warning">
+                                                                    <i class="fas fa-book-reader me-1"></i>
+                                                                    Ödünç Verilmiş
+                                                                </span>
+                                                                break;
+                                                            case KutuphaneOtomasyonu.Models.CopyStatus.Reserved:
+                                                                <span class="badge bg-info">
+                                                                    <i class="fas fa-clock me-1"></i>
+                                                                    Rezerve
+                                                                </span>
+                                                                break;
+                                                            case KutuphaneOtomasyonu.Models.CopyStatus.Maintenance:
+                                                                <span class="badge bg-secondary">
+                                                                    <i class="fas fa-tools me-1"></i>
+                                                                    Bakımda
+                                                                </span>
+                                                                break;
+                                                            case KutuphaneOtomasyonu.Models.CopyStatus.Damaged:
+                                                                <span class="badge bg-danger">
+                                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                                    Hasarlı
+                                                                </span>
+                                                                break;
+                                                        }
+                                                    </td>
+                                                    <td>@copy.AddedAt.ToString("dd.MM.yyyy")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Bu kitap için henüz kopya eklenmemiş.
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <div class="d-flex gap-2 mt-4">
+                        <a class="btn btn-secondary" asp-action="Index">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Geri Dön
+                        </a>
+                        
+                        @if (isAdmin)
+                        {
+                            <a class="btn btn-warning" asp-action="Edit" asp-route-id="@Model.BookId">
+                                <i class="fas fa-edit me-1"></i>
+                                Düzenle
+                            </a>
+                        }
+                        
+                        @if (isLoggedIn)
+                        {
+                            <a class="btn btn-primary" asp-controller="Loan" asp-action="Index">
+                                <i class="fas fa-book-reader me-1"></i>
+                                Ödünç Al
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

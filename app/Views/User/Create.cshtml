@@ -1,0 +1,109 @@
+@model KutuphaneOtomasyonu.Models.UserCreateViewModel
+@{
+    ViewData["Title"] = "Yeni Kullanıcı";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Yeni Kullanıcı Oluştur
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Username" class="form-label">
+                                        <i class="fas fa-user me-1"></i>
+                                        Kullanıcı Adı
+                                    </label>
+                                    <input asp-for="Username" class="form-control" placeholder="Kullanıcı adını girin" />
+                                    <span asp-validation-for="Username" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Email" class="form-label">
+                                        <i class="fas fa-envelope me-1"></i>
+                                        E-posta
+                                    </label>
+                                    <input asp-for="Email" class="form-control" placeholder="E-posta adresini girin" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">
+                                <i class="fas fa-id-card me-1"></i>
+                                Ad Soyad
+                            </label>
+                            <input asp-for="FullName" class="form-control" placeholder="Ad soyadını girin" />
+                            <span asp-validation-for="FullName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>
+                                Şifre
+                            </label>
+                            <input asp-for="Password" class="form-control" placeholder="Şifre girin" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Role" class="form-label">
+                                        <i class="fas fa-user-tag me-1"></i>
+                                        Rol
+                                    </label>
+                                    <select asp-for="Role" class="form-select">
+                                        <option value="@KutuphaneOtomasyonu.Models.UserRole.User">Kullanıcı</option>
+                                        <option value="@KutuphaneOtomasyonu.Models.UserRole.Admin">Yönetici</option>
+                                    </select>
+                                    <span asp-validation-for="Role" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="Status" class="form-label">
+                                        <i class="fas fa-toggle-on me-1"></i>
+                                        Durum
+                                    </label>
+                                    <select asp-for="Status" class="form-select">
+                                        <option value="@KutuphaneOtomasyonu.Models.UserStatus.Active">Aktif</option>
+                                        <option value="@KutuphaneOtomasyonu.Models.UserStatus.Inactive">Pasif</option>
+                                    </select>
+                                    <span asp-validation-for="Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Geri Dön
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Kullanıcı Oluştur
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

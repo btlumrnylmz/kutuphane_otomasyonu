@@ -1,0 +1,39 @@
+@model IEnumerable<KutuphaneOtomasyonu.Controllers.ReservationRow>
+@{
+    ViewData["Title"] = "Rezervasyonlar";
+}
+
+<h2>Rezervasyonlar</h2>
+<hr />
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Rezervasyon #</th>
+            <th>Üye</th>
+            <th>Kitap</th>
+            <th>Rezervasyon Tarihi</th>
+            <th>Bildirim</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model)
+    {
+        <tr>
+            <td>@r.reservation_id</td>
+            <td>@r.member_name</td>
+            <td>@r.book_title</td>
+            <td>@r.reserved_at</td>
+            <td>
+                @if (r.notified) { <span class="badge bg-success">Gönderildi</span> } else { <span class="badge bg-secondary">Bekliyor</span> }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-controller="Reports" asp-action="Index">Geri Dön</a>
+
+
+
+

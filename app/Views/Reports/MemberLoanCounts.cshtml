@@ -1,0 +1,31 @@
+@model IEnumerable<KutuphaneOtomasyonu.Controllers.MemberLoanCountRow>
+@{
+    ViewData["Title"] = "Üye Bazında Ödünç Sayısı";
+}
+
+<h2>Üye Bazında Ödünç Sayısı</h2>
+<hr />
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Üye</th>
+            <th>Toplam Ödünç</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var r in Model)
+    {
+        <tr>
+            <td>@r.member_name</td>
+            <td>@r.total_loans</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-controller="Reports" asp-action="Index">Geri Dön</a>
+
+
+
+

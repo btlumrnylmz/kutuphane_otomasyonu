@@ -1,0 +1,217 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
+@{
+    ViewData["Title"] = "Raporlar";
+    var isAdmin = AuthService.IsAdmin();
+    var isLoggedIn = AuthService.IsLoggedIn();
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Kütüphane Raporları
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Aktif Ödünçler</h4>
+                                                <p class="card-text">Şu anda ödünç verilen kitaplar</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-book-reader fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="ActiveLoans" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="col-md-6 col-lg-3 mb-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <h4 class="card-title">En Çok Ödünç Alınan Kitaplar</h4>
+                                            <p class="card-text">Popüler kitaplar listesi</p>
+                                        </div>
+                                        <div class="align-self-center">
+                                            <i class="fas fa-trophy fa-2x"></i>
+                                        </div>
+                                    </div>
+                                    <a asp-action="TopBooks" class="btn btn-light btn-sm">
+                                        <i class="fas fa-eye me-1"></i>
+                                        Raporu Görüntüle
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-warning text-dark">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Üye Ödünç Sayıları</h4>
+                                                <p class="card-text">Üyelerin ödünç istatistikleri</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-users fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="MemberLoanCounts" class="btn btn-dark btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Rezervasyonlar</h4>
+                                                <p class="card-text">Bekleyen rezervasyonlar</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-clock fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="Reservations" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row">
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-dark text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Sistem Logları</h4>
+                                                <p class="card-text">Audit log kayıtları</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-file-alt fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="AuditLog" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Geciken Ödünçler</h4>
+                                                <p class="card-text">Vadesi geçen kitaplar</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="OverdueLoans" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Kategori İstatistikleri</h4>
+                                                <p class="card-text">Kitap kategorileri dağılımı</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-chart-pie fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="CategoryStats" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (isAdmin)
+                        {
+                            <div class="col-md-6 col-lg-3 mb-4">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title">Aylık İstatistikler</h4>
+                                                <p class="card-text">Aylık ödünç verileri</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fas fa-calendar-alt fa-2x"></i>
+                                            </div>
+                                        </div>
+                                        <a asp-action="MonthlyStats" class="btn btn-light btn-sm">
+                                            <i class="fas fa-eye me-1"></i>
+                                            Raporu Görüntüle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Bilgi:</strong> Raporlar gerçek zamanlı olarak güncellenir. Detaylı analiz için ilgili raporu seçin.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

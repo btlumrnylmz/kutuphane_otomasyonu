@@ -1,0 +1,45 @@
+@model KutuphaneOtomasyonu.Models.Member
+@{
+    ViewData["Title"] = "Yeni Üye";
+}
+
+<h2>Yeni Üye</h2>
+<hr />
+
+<form asp-action="Create" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="FullName" class="form-label">Ad Soyad</label>
+        <input asp-for="FullName" class="form-control" />
+        <span asp-validation-for="FullName" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Email" class="form-label">E-posta</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Phone" class="form-label">Telefon</label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="JoinedAt" class="form-label">Üyelik Tarihi</label>
+        <input asp-for="JoinedAt" class="form-control" type="datetime-local" />
+        <span asp-validation-for="JoinedAt" class="text-danger"></span>
+    </div>
+    <div class="col-md-4">
+        <label asp-for="Status" class="form-label">Durum</label>
+        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<KutuphaneOtomasyonu.Models.MemberStatus>()"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+

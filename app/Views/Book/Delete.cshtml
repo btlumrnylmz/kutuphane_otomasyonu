@@ -1,0 +1,26 @@
+@model KutuphaneOtomasyonu.Models.Book
+@{
+    ViewData["Title"] = "Kitap Sil";
+}
+
+<h2>Kitap Sil</h2>
+<hr />
+
+<p>Bu kitabı silmek istediğinize emin misiniz?</p>
+
+<dl class="row">
+    <dt class="col-sm-2">ISBN</dt>
+    <dd class="col-sm-10">@Model.Isbn</dd>
+    <dt class="col-sm-2">Başlık</dt>
+    <dd class="col-sm-10">@Model.Title</dd>
+    <dt class="col-sm-2">Yazar</dt>
+    <dd class="col-sm-10">@Model.Author</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="BookId" />
+    <button type="submit" class="btn btn-danger">Sil</button>
+    <a asp-action="Index" class="btn btn-secondary">İptal</a>
+</form>
+
+

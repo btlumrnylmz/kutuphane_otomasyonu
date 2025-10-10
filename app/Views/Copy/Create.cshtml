@@ -1,0 +1,35 @@
+@model KutuphaneOtomasyonu.Models.Copy
+@{
+    ViewData["Title"] = "Yeni Kopya";
+}
+
+<h2>Yeni Kopya</h2>
+<hr />
+
+<form asp-action="Create" method="post" class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label">Kitap</label>
+        <select asp-for="BookId" class="form-select" asp-items="ViewBag.BookId"></select>
+        <span asp-validation-for="BookId" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="ShelfLocation" class="form-label">Raf</label>
+        <input asp-for="ShelfLocation" class="form-control" />
+        <span asp-validation-for="ShelfLocation" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Status" class="form-label">Durum</label>
+        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<KutuphaneOtomasyonu.Models.CopyStatus>()"></select>
+        <span asp-validation-for="Status" class="text-danger"></span>
+    </div>
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+

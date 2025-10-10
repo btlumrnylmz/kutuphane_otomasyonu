@@ -1,0 +1,46 @@
+@model KutuphaneOtomasyonu.Models.Book
+@{
+    ViewData["Title"] = "Kitap Düzenle";
+}
+
+<h2>Kitap Düzenle</h2>
+<hr />
+
+<form asp-action="Edit" method="post" class="row g-3">
+    <input type="hidden" asp-for="BookId" />
+    <div class="col-md-4">
+        <label asp-for="Isbn" class="form-label">ISBN</label>
+        <input asp-for="Isbn" class="form-control" />
+        <span asp-validation-for="Isbn" class="text-danger"></span>
+    </div>
+    <div class="col-md-8">
+        <label asp-for="Title" class="form-label">Başlık</label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Author" class="form-label">Yazar</label>
+        <input asp-for="Author" class="form-control" />
+        <span asp-validation-for="Author" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="PublishYear" class="form-label">Yayın Yılı</label>
+        <input asp-for="PublishYear" class="form-control" />
+        <span asp-validation-for="PublishYear" class="text-danger"></span>
+    </div>
+    <div class="col-md-3">
+        <label asp-for="Category" class="form-label">Kategori</label>
+        <input asp-for="Category" class="form-control" />
+        <span asp-validation-for="Category" class="text-danger"></span>
+    </div>
+    <div class="col-12 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+        <a asp-action="Index" class="btn btn-secondary">İptal</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+
