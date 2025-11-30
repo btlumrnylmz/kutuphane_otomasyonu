@@ -3,7 +3,7 @@
     ViewData["Title"] = "Yeni Kullanıcı";
 }
 
-<div class="container">
+<div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
@@ -13,7 +13,7 @@
                         Yeni Kullanıcı Oluştur
                     </h4>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     <form asp-action="Create" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -87,8 +87,8 @@
                             </div>
                         </div>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a asp-action="Index" class="btn btn-secondary me-md-2">
+                        <div class="d-flex flex-wrap gap-2 mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left me-1"></i>
                                 Geri Dön
                             </a>

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KutuphaneOtomasyonu.Data;
@@ -26,7 +27,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -41,12 +42,36 @@ namespace KutuphaneOtomasyonu.Controllers
             return null;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
 
-            var copies = await _context.Copies.Include(c => c.Book).AsNoTracking().ToListAsync();
+            IQueryable<Copy> query = _context.Copies.Include(c => c.Book).AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 5, 100);
+
+            var copies = await query
+                .OrderBy(c => c.Book.Title)
+                .ThenBy(c => c.ShelfLocation)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var pagination = new PaginationViewModel
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                ActionName = "Index",
+                ControllerName = "Copy",
+                QueryParameters = PaginationViewModel.GetQueryParameters(Request)
+            };
+
+            ViewBag.Pagination = pagination;
+
             return View(copies);
         }
 
@@ -79,14 +104,32 @@ namespace KutuphaneOtomasyonu.Controllers
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
 
+            // Raf konumu kontrolü
+            if (string.IsNullOrWhiteSpace(copy.ShelfLocation))
+            {
+                ModelState.AddModelError("ShelfLocation", "Raf konumu zorunludur ve boş bırakılamaz.");
+            }
+
             if (ModelState.IsValid)
             {
+                // CopyNumber'ı otomatik hesapla (aynı kitabın kaç kopyası var)
+                var existingCopiesCount = await _context.Copies
+                    .Where(c => c.BookId == copy.BookId)
+                    .CountAsync();
+                
+                copy.CopyNumber = existingCopiesCount + 1;
+                copy.AddedAt = DateTime.UtcNow;
+                copy.CreatedAt = DateTime.UtcNow;
+
+                // Raf konumunu trim et
+                copy.ShelfLocation = copy.ShelfLocation?.Trim() ?? string.Empty;
+
                 _context.Add(copy);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Kopya başarıyla eklendi.";
                 return RedirectToAction(nameof(Index));
             }
-            ViewBag.BookId = new SelectList(_context.Books, "BookId", "Title", copy.BookId);
+            ViewBag.BookId = new SelectList(_context.Books.AsNoTracking().ToList(), "BookId", "Title", copy.BookId);
             return View(copy);
         }
 
@@ -104,22 +147,46 @@ namespace KutuphaneOtomasyonu.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CopyId,BookId,ShelfLocation,Status")] Copy copy)
+        public async Task<IActionResult> Edit(int id, [Bind("CopyId,BookId,ShelfLocation,Status,CopyNumber")] Copy copy)
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
 
             if (id != copy.CopyId) return NotFound();
+
+            // Raf konumu kontrolü
+            if (string.IsNullOrWhiteSpace(copy.ShelfLocation))
+            {
+                ModelState.AddModelError("ShelfLocation", "Raf konumu zorunludur ve boş bırakılamaz.");
+            }
+
             if (!ModelState.IsValid)
             {
-                ViewBag.BookId = new SelectList(_context.Books, "BookId", "Title", copy.BookId);
+                ViewBag.BookId = new SelectList(_context.Books.AsNoTracking().ToList(), "BookId", "Title", copy.BookId);
                 return View(copy);
             }
 
-            _context.Update(copy);
-            await _context.SaveChangesAsync();
-            TempData["Success"] = "Kopya başarıyla güncellendi.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                // Mevcut kopyayı al (CopyNumber ve tarihleri koru)
+                var existingCopy = await _context.Copies.FindAsync(id);
+                if (existingCopy == null) return NotFound();
+
+                // Sadece değiştirilebilir alanları güncelle
+                existingCopy.BookId = copy.BookId;
+                existingCopy.Status = copy.Status;
+                existingCopy.ShelfLocation = copy.ShelfLocation?.Trim() ?? string.Empty;
+
+                _context.Update(existingCopy);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Kopya başarıyla güncellendi.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!_context.Copies.Any(e => e.CopyId == id)) return NotFound();
+                throw;
+            }
         }
 
         public async Task<IActionResult> Delete(int? id)

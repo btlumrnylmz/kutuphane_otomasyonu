@@ -1,0 +1,152 @@
+@model KutuphaneOtomasyonu.Models.PaginationViewModel
+@{
+    var totalPages = (int)Math.Ceiling((double)Model.TotalItems / Model.PageSize);
+    var startPage = Math.Max(1, Model.CurrentPage - 2);
+    var endPage = Math.Min(totalPages, Model.CurrentPage + 2);
+}
+
+@if (Model.TotalItems > 0 && totalPages > 1)
+{
+    <nav aria-label="Sayfa navigasyonu">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="text-muted">
+                Toplam <strong>@Model.TotalItems</strong> kayıttan 
+                <strong>@((Model.CurrentPage - 1) * Model.PageSize + 1)</strong> - 
+                <strong>@Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems)</strong> 
+                arası gösteriliyor
+            </div>
+            <div>
+                <label class="me-2">Sayfa başına:</label>
+                <select id="pageSizeSelect" class="form-select form-select-sm d-inline-block" style="width: auto;">
+                    @foreach (var size in new[] { 10, 20, 50, 100 })
+                    {
+                        @if (Model.PageSize == size)
+                        {
+                            <option value="@size" selected>@size</option>
+                        }
+                        else
+                        {
+                            <option value="@size">@size</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+        
+        <ul class="pagination justify-content-center">
+            @* İlk sayfa *@
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(1)" aria-label="İlk">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(Model.CurrentPage - 1)" aria-label="Önceki">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-double-left"></i>
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-left"></i>
+                    </span>
+                </li>
+            }
+
+            @* Sayfa numaraları *@
+            @if (startPage > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(1)">1</a>
+                </li>
+                @if (startPage > 2)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+            }
+
+            @for (var i = startPage; i <= endPage; i++)
+            {
+                <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    @if (i == Model.CurrentPage)
+                    {
+                        <span class="page-link">@i</span>
+                    }
+                    else
+                    {
+                        <a class="page-link" href="@Model.GetPageUrl(i)">@i</a>
+                    }
+                </li>
+            }
+
+            @if (endPage < totalPages)
+            {
+                @if (endPage < totalPages - 1)
+                {
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                }
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(totalPages)">@totalPages</a>
+                </li>
+            }
+
+            @* Son sayfa *@
+            @if (Model.CurrentPage < totalPages)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(Model.CurrentPage + 1)" aria-label="Sonraki">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="@Model.GetPageUrl(totalPages)" aria-label="Son">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-right"></i>
+                    </span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">
+                        <i class="fas fa-angle-double-right"></i>
+                    </span>
+                </li>
+            }
+        </ul>
+    </nav>
+    
+    <script>
+        // Sayfa boyutu değiştiğinde
+        document.getElementById('pageSizeSelect')?.addEventListener('change', function() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('pageSize', this.value);
+            url.searchParams.set('page', '1'); // İlk sayfaya dön
+            window.location.href = url.toString();
+        });
+    </script>
+}
+else if (Model.TotalItems == 0)
+{
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle me-2"></i>
+        Henüz kayıt bulunmamaktadır.
+    </div>
+}

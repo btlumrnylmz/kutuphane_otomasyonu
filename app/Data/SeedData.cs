@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using KutuphaneOtomasyonu.Models;
 
 namespace KutuphaneOtomasyonu.Data
@@ -300,6 +303,402 @@ namespace KutuphaneOtomasyonu.Data
                 }
             }
         }
+
+        /// <summary>
+        /// wwwroot/img/books/ klasöründeki resimlere göre kitaplar ekler.
+        /// Resim dosya adlarından kitap bilgilerini çıkarır veya manuel eşleştirme yapar.
+        /// </summary>
+        public static void AddBooksFromImages(LibraryContext context, IWebHostEnvironment env)
+        {
+            var imagesPath = Path.Combine(env.WebRootPath, "img", "books");
+            
+            if (!Directory.Exists(imagesPath))
+            {
+                Directory.CreateDirectory(imagesPath);
+                return;
+            }
+
+            var imageFiles = Directory.GetFiles(imagesPath)
+                .Where(f => f.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) || 
+                           f.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) || 
+                           f.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!imageFiles.Any())
+            {
+                return; // Resim yoksa çık
+            }
+
+            // Resim dosya adlarından kitap bilgilerini çıkar
+            // Format: "kitap-adi-yazar-kategori.jpg" veya sadece "kitap-adi.jpg"
+            var booksToAdd = new List<Book>();
+            var existingIsbns = context.Books.Select(b => b.Isbn).ToList();
+            var baseIsbn = 9789750809000; // Başlangıç ISBN
+
+            foreach (var imagePath in imageFiles)
+            {
+                var fileName = Path.GetFileNameWithoutExtension(imagePath);
+                var imageUrl = $"/img/books/{Path.GetFileName(imagePath)}";
+                
+                // Eğer bu resim zaten bir kitaba aitse, atla
+                if (context.Books.Any(b => b.CoverImageUrl == imageUrl))
+                {
+                    continue;
+                }
+
+                // Dosya adından bilgi çıkar (örn: "kurk-mantolu-madonna-sabahattin-ali-roman")
+                var parts = fileName.Split('-');
+                
+                // Basit bir eşleştirme: İlk kısım genelde kitap adı
+                var title = string.Join(" ", parts.Take(Math.Min(parts.Length, 3)))
+                    .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(w => char.ToUpper(w[0]) + w.Substring(1).ToLower())
+                    .ToArray();
+                
+                var bookTitle = string.Join(" ", title);
+                if (string.IsNullOrWhiteSpace(bookTitle))
+                {
+                    bookTitle = "Bilinmeyen Kitap";
+                }
+
+                // Varsayılan değerler
+                var author = parts.Length > 3 ? string.Join(" ", parts.Skip(3).Take(2)) : "Bilinmeyen Yazar";
+                var category = parts.Length > 5 ? parts[5] : "Roman";
+                
+                // ISBN oluştur (benzersiz olması için)
+                var isbn = (baseIsbn++).ToString();
+
+                var book = new Book
+                {
+                    Isbn = isbn,
+                    Title = bookTitle,
+                    Author = author,
+                    PublishYear = DateTime.Now.Year - new Random().Next(1, 50), // Son 50 yıl içinde rastgele
+                    Category = category,
+                    Description = $"{bookTitle} - {author} tarafından yazılmış {category} türünde bir eser.",
+                    PageCount = new Random().Next(100, 500),
+                    CoverImageUrl = imageUrl
+                };
+
+                if (!existingIsbns.Contains(book.Isbn))
+                {
+                    booksToAdd.Add(book);
+                }
+            }
+
+            if (booksToAdd.Any())
+            {
+                context.Books.AddRange(booksToAdd);
+                context.SaveChanges();
+
+                // Her kitap için en az 1 kopya ekle
+                foreach (var book in booksToAdd)
+                {
+                    var savedBook = context.Books.FirstOrDefault(b => b.Isbn == book.Isbn);
+                    if (savedBook != null && !context.Copies.Any(c => c.BookId == savedBook.BookId))
+                    {
+                        var copy = new Copy
+                        {
+                            BookId = savedBook.BookId,
+                            ShelfLocation = $"A{new Random().Next(1, 10)}-{new Random().Next(1, 20):D2}",
+                            Status = CopyStatus.Available,
+                            CopyNumber = 1
+                        };
+                        context.Copies.Add(copy);
+                    }
+                }
+                context.SaveChanges();
+            }
+        }
+
+        /// <summary>
+        /// Yüklenen resimlere göre kitapları ekler (kullanıcı resimleri yükledikten sonra çağrılır).
+        /// </summary>
+        public static void AddUploadedBooksFromImages(LibraryContext context, IWebHostEnvironment env)
+        {
+            var mapping = new Dictionary<string, BookInfo>
+            {
+                { "allah-icin-sevmek-702793-12151633-70-K.jpg", new BookInfo {
+                    Title = "Allah İçin Sevmek",
+                    Author = "Osman Nuri Topbaş",
+                    Category = "Dini",
+                    PublishYear = 2012,
+                    PageCount = 224,
+                    Description = "Allah'ı ve O'nun rızasını kazanmak için sevmenin önemini anlatan dini bir eser.",
+                    Isbn = "9789752631234"
+                }},
+                { "babalar-ve-ogullar.jpg", new BookInfo {
+                    Title = "Babalar ve Oğullar",
+                    Author = "Ivan Turgenev",
+                    Category = "Roman",
+                    PublishYear = 1862,
+                    PageCount = 256,
+                    Description = "Rus edebiyatının klasik eserlerinden biri. Nesiller arası çatışmayı ve toplumsal değişimi konu alır.",
+                    Isbn = "9789750712345"
+                }},
+                { "bir-idam-mahkumunun-son-gunu-57569-12243410-57-K.jpg", new BookInfo {
+                    Title = "Bir İdam Mahkumunun Son Günü",
+                    Author = "Victor Hugo",
+                    Category = "Roman",
+                    PublishYear = 1829,
+                    PageCount = 128,
+                    Description = "İdam cezasına çarptırılmış bir mahkumun son gününde yaşadığı duyguları ve düşünceleri anlatan duygusal bir eser.",
+                    Isbn = "9789750812345"
+                }},
+                { "bogurtlen-kisi-860400-13489405-86-K.jpg", new BookInfo {
+                    Title = "Böğürtlen Kışı",
+                    Author = "Sarah Jio",
+                    Category = "Roman",
+                    PublishYear = 2011,
+                    PageCount = 384,
+                    Description = "Bir ada kasabasında geçen gizemli ve romantik bir hikaye.",
+                    Isbn = "9789750812346"
+                }},
+                { "dil-belasi-317944-12541550-31-K.jpg", new BookInfo {
+                    Title = "Dil Belası",
+                    Author = "Ayşe Kulin",
+                    Category = "Roman",
+                    PublishYear = 2018,
+                    PageCount = 304,
+                    Description = "Ayşe Kulin'in kaleminden güçlü bir kadın karakterin hayatı ve mücadelesi.",
+                    Isbn = "9789750812347"
+                }},
+                { "engeregin-gozu-512308-9499558-51-K.jpg", new BookInfo {
+                    Title = "Engereğin Gözü",
+                    Author = "Alev Alatlı",
+                    Category = "Roman",
+                    PublishYear = 1984,
+                    PageCount = 384,
+                    Description = "Türk edebiyatının önemli yazarlarından Alev Alatlı'nın ilk romanı.",
+                    Isbn = "9789750812348"
+                }},
+                { "fahrenheit-289854-13887542-28-K.jpg", new BookInfo {
+                    Title = "Fahrenheit 451",
+                    Author = "Ray Bradbury",
+                    Category = "Distopya",
+                    PublishYear = 1953,
+                    PageCount = 256,
+                    Description = "Kitapların yakıldığı ve düşüncenin yasaklandığı distopik bir gelecek tasviri.",
+                    Isbn = "9789750812349"
+                }},
+                { "gazap-uzumleri-13865964-56-K.jpg", new BookInfo {
+                    Title = "Gazap Üzümleri",
+                    Author = "John Steinbeck",
+                    Category = "Roman",
+                    PublishYear = 1939,
+                    PageCount = 544,
+                    Description = "Büyük Buhran döneminde yaşanan göç ve yoksulluk hikayesi.",
+                    Isbn = "9789750812350"
+                }},
+                { "harry-potter-ve-ates-kadehi-4-13467938-55-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Ateş Kadehi",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 2000,
+                    PageCount = 672,
+                    Description = "Harry Potter serisinin dördüncü kitabı. Üçbüyücü Turnuvası'nın hikayesi.",
+                    Isbn = "9789750812351"
+                }},
+                { "harry-potter-ve-azkaban-tutsagi-3-13467960-59-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Azkaban Tutsağı",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 1999,
+                    PageCount = 464,
+                    Description = "Harry Potter serisinin üçüncü kitabı. Sirius Black'in kaçışı ve gerçek hikayesi.",
+                    Isbn = "9789750812352"
+                }},
+                { "harry-potter-ve-felsefe-tasi-1-11605137-55-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Felsefe Taşı",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 1997,
+                    PageCount = 320,
+                    Description = "Harry Potter serisinin ilk kitabı. Harry'nin büyülü dünyaya adım atışı.",
+                    Isbn = "9789750812353"
+                }},
+                { "harry-potter-ve-melez-prens-6-11607143-55-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Melez Prens",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 2005,
+                    PageCount = 608,
+                    Description = "Harry Potter serisinin altıncı kitabı. Voldemort'un geçmişinin keşfedilmesi.",
+                    Isbn = "9789750812354"
+                }},
+                { "harry-potter-ve-olum-yadigarlari-7-11606871-55-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Ölüm Yadigarları",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 2007,
+                    PageCount = 784,
+                    Description = "Harry Potter serisinin yedinci ve son kitabı. Voldemort ile nihai savaş.",
+                    Isbn = "9789750812355"
+                }},
+                { "harry-potter-ve-sirlar-odasi-2-13467935-59-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Sırlar Odası",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 1998,
+                    PageCount = 368,
+                    Description = "Harry Potter serisinin ikinci kitabı. Hogwarts'ta gizemli saldırılar.",
+                    Isbn = "9789750812356"
+                }},
+                { "harry-potter-ve-zumruduanka-yoldasligi-5-11546143-55-K.jpg", new BookInfo {
+                    Title = "Harry Potter ve Zümrüdüanka Yoldaşlığı",
+                    Author = "J.K. Rowling",
+                    Category = "Fantastik",
+                    PublishYear = 2003,
+                    PageCount = 896,
+                    Description = "Harry Potter serisinin beşinci kitabı. Zümrüdüanka Yoldaşlığı'nın kuruluşu.",
+                    Isbn = "9789750812357"
+                }},
+                { "kalplerin-kesfi-245420-11567894-24-K.jpg", new BookInfo {
+                    Title = "Kalplerin Keşfi",
+                    Author = "İmam Gazali",
+                    Category = "Dini",
+                    PublishYear = 1106,
+                    PageCount = 456,
+                    Description = "İslam tasavvufunun önemli eserlerinden biri. Kalp ve ruh temizliğini konu alır.",
+                    Isbn = "9789750812358"
+                }},
+                { "mart-menekseleri-868275-13859485-86-K.jpg", new BookInfo {
+                    Title = "Mart Menekseleri",
+                    Author = "Ayşe Kulin",
+                    Category = "Roman",
+                    PublishYear = 2000,
+                    PageCount = 320,
+                    Description = "Ayşe Kulin'in kaleminden modern Türkiye'nin bir ailesinin hikayesi.",
+                    Isbn = "9789750812359"
+                }},
+                { "mutlu-olum-704651-13999934-70-K.jpg", new BookInfo {
+                    Title = "Mutlu Ölüm",
+                    Author = "Albert Camus",
+                    Category = "Felsefe",
+                    PublishYear = 1971,
+                    PageCount = 192,
+                    Description = "Camus'nun ölümünden sonra yayımlanan romanı. Absürtlük felsefesinin izlerini taşır.",
+                    Isbn = "9789750812360"
+                }},
+                { "Oz-Terapinin-Getirdikleri_1.jpg", new BookInfo {
+                    Title = "Öz Terapinin Getirdikleri",
+                    Author = "Doğan Cüceloğlu",
+                    Category = "Kişisel Gelişim",
+                    PublishYear = 2012,
+                    PageCount = 288,
+                    Description = "Kişisel gelişim ve öz farkındalık üzerine yazılmış önemli bir eser.",
+                    Isbn = "9789750812361"
+                }},
+                { "yasli-amca-ve-deniz-13882646-88-K.jpg", new BookInfo {
+                    Title = "Yaşlı Adam ve Deniz",
+                    Author = "Ernest Hemingway",
+                    Category = "Roman",
+                    PublishYear = 1952,
+                    PageCount = 128,
+                    Description = "Nobel ödüllü eser. Yaşlı bir balıkçının büyük bir balıkla mücadelesi.",
+                    Isbn = "9789750812362"
+                }}
+            };
+
+            AddBooksFromImageMapping(context, env, mapping);
+        }
+
+        /// <summary>
+        /// Manuel olarak resim dosya adlarına göre kitaplar ekler.
+        /// Resim dosya adlarını ve kitap bilgilerini eşleştirir.
+        /// </summary>
+        public static void AddBooksFromImageMapping(LibraryContext context, IWebHostEnvironment env, Dictionary<string, BookInfo> imageBookMapping)
+        {
+            var imagesPath = Path.Combine(env.WebRootPath, "img", "books");
+            
+            if (!Directory.Exists(imagesPath))
+            {
+                return;
+            }
+
+            var existingIsbns = context.Books.Select(b => b.Isbn).ToList();
+            var booksToAdd = new List<Book>();
+            var baseIsbn = 9789750809000;
+
+            foreach (var mapping in imageBookMapping)
+            {
+                var imageFileName = mapping.Key;
+                var bookInfo = mapping.Value;
+                var imagePath = Path.Combine(imagesPath, imageFileName);
+
+                if (!File.Exists(imagePath))
+                {
+                    continue; // Dosya yoksa atla
+                }
+
+                var imageUrl = $"/img/books/{imageFileName}";
+                
+                // Eğer bu resim zaten bir kitaba aitse, atla
+                if (context.Books.Any(b => b.CoverImageUrl == imageUrl))
+                {
+                    continue;
+                }
+
+                var isbn = bookInfo.Isbn ?? (baseIsbn++).ToString();
+
+                if (existingIsbns.Contains(isbn))
+                {
+                    continue; // ISBN zaten varsa atla
+                }
+
+                var book = new Book
+                {
+                    Isbn = isbn,
+                    Title = bookInfo.Title,
+                    Author = bookInfo.Author,
+                    PublishYear = bookInfo.PublishYear ?? DateTime.Now.Year - new Random().Next(1, 50),
+                    Category = bookInfo.Category ?? "Roman",
+                    Description = bookInfo.Description ?? $"{bookInfo.Title} - {bookInfo.Author} tarafından yazılmış bir eser.",
+                    PageCount = bookInfo.PageCount,
+                    CoverImageUrl = imageUrl
+                };
+
+                booksToAdd.Add(book);
+            }
+
+            if (booksToAdd.Any())
+            {
+                context.Books.AddRange(booksToAdd);
+                context.SaveChanges();
+
+                // Her kitap için en az 1 kopya ekle
+                foreach (var book in booksToAdd)
+                {
+                    var savedBook = context.Books.FirstOrDefault(b => b.Isbn == book.Isbn);
+                    if (savedBook != null && !context.Copies.Any(c => c.BookId == savedBook.BookId))
+                    {
+                        var copy = new Copy
+                        {
+                            BookId = savedBook.BookId,
+                            ShelfLocation = $"A{new Random().Next(1, 10)}-{new Random().Next(1, 20):D2}",
+                            Status = CopyStatus.Available,
+                            CopyNumber = 1
+                        };
+                        context.Copies.Add(copy);
+                    }
+                }
+                context.SaveChanges();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Kitap bilgilerini tutan yardımcı sınıf.
+    /// </summary>
+    public class BookInfo
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Author { get; set; } = string.Empty;
+        public string? Category { get; set; }
+        public int? PublishYear { get; set; }
+        public int? PageCount { get; set; }
+        public string? Description { get; set; }
+        public string? Isbn { get; set; }
     }
 }
 

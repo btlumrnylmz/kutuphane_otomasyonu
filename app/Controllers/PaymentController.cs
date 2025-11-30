@@ -29,7 +29,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Giriş kontrolü yapar.
         /// </summary>
-        private IActionResult CheckLoginAccess()
+        private IActionResult? CheckLoginAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -42,7 +42,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Gecikme ödemeleri listesi. Yöneticiler tüm ödemeleri, üyeler sadece kendi ödemelerini görür.
         /// </summary>
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;
@@ -56,7 +56,7 @@ namespace KutuphaneOtomasyonu.Controllers
                 .Include(p => p.Loan)
                     .ThenInclude(l => l.Copy)
                         .ThenInclude(c => c.Book)
-                .OrderByDescending(p => p.PaymentDate);
+                .AsNoTracking();
 
             // Üyeler sadece kendi ödemelerini görür (eğer üye ise)
             if (!isAdmin && currentUser != null)
@@ -65,7 +65,28 @@ namespace KutuphaneOtomasyonu.Controllers
                 // Bu durumda sadece giriş yapmış olması yeterli
             }
 
-            var payments = await paymentsQuery.ToListAsync();
+            var totalItems = await paymentsQuery.CountAsync();
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 5, 100);
+
+            var payments = await paymentsQuery
+                .OrderByDescending(p => p.PaymentDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var pagination = new PaginationViewModel
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                ActionName = "Index",
+                ControllerName = "Payment",
+                QueryParameters = PaginationViewModel.GetQueryParameters(Request)
+            };
+
+            ViewBag.Pagination = pagination;
+
             return View(payments);
         }
 

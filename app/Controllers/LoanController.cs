@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using KutuphaneOtomasyonu.Data;
 using KutuphaneOtomasyonu.Models;
 using KutuphaneOtomasyonu.Services;
@@ -27,7 +28,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Giriş kontrolü yapar.
         /// </summary>
-        private IActionResult CheckLoginAccess()
+        private IActionResult? CheckLoginAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -40,7 +41,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;
@@ -55,21 +56,101 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Aktif ve iade edilmiş ödünç kayıtlarının listesi. Sadece yöneticiler için.
         /// </summary>
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
 
-            var loans = await _context.Loans
+            IQueryable<Loan> query = _context.Loans
                 .Include(l => l.Member)
                 .Include(l => l.Copy).ThenInclude(c => c.Book)
+                .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 5, 100);
+
+            var loans = await query
                 .OrderByDescending(l => l.LoanedAt)
-                .AsNoTracking()
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             ViewBag.Members = new SelectList(await _context.Members.AsNoTracking().ToListAsync(), "MemberId", "FullName");
-            ViewBag.AvailableCopies = new SelectList(await _context.Copies.Include(c => c.Book).Where(c => c.Status == CopyStatus.Available).AsNoTracking().ToListAsync(), "CopyId", "ShelfLocation");
-            ViewBag.LoanedCopies = new SelectList(await _context.Copies.Include(c => c.Book).Where(c => c.Status == CopyStatus.Loaned).AsNoTracking().ToListAsync(), "CopyId", "ShelfLocation");
+            
+            // Uygun kopyaları getir - null-safe şekilde
+            var availableCopiesList = new List<object>();
+            try
+            {
+                // Raw SQL ile null-safe çekme - ISNULL kullanarak
+                var availableCopiesData = await _context.Set<CopyData>()
+                    .FromSqlRaw(
+                        "SELECT c.CopyId, c.BookId, ISNULL(c.ShelfLocation, '') as ShelfLocation, b.Title as BookTitle " +
+                        "FROM Copies c " +
+                        "INNER JOIN Books b ON c.BookId = b.BookId " +
+                        "WHERE c.Status = {0}",
+                        CopyStatus.Available.ToString())
+                    .AsNoTracking()
+                    .ToListAsync();
+                
+                foreach (var copyData in availableCopiesData)
+                {
+                    var shelfLoc = string.IsNullOrWhiteSpace(copyData.ShelfLocation) ? "Belirtilmemiş" : copyData.ShelfLocation;
+                    availableCopiesList.Add(new { 
+                        CopyId = copyData.CopyId, 
+                        DisplayText = $"{copyData.BookTitle} (Raf: {shelfLoc})"
+                    });
+                }
+            }
+            catch
+            {
+                // Hata durumunda boş liste
+            }
+            
+            // Ödünçteki kopyaları getir - null-safe şekilde
+            var loanedCopiesList = new List<object>();
+            try
+            {
+                // Raw SQL ile null-safe çekme - ISNULL kullanarak
+                var loanedCopiesData = await _context.Set<CopyData>()
+                    .FromSqlRaw(
+                        "SELECT c.CopyId, c.BookId, ISNULL(c.ShelfLocation, '') as ShelfLocation, b.Title as BookTitle " +
+                        "FROM Copies c " +
+                        "INNER JOIN Books b ON c.BookId = b.BookId " +
+                        "WHERE c.Status = {0}",
+                        CopyStatus.Loaned.ToString())
+                    .AsNoTracking()
+                    .ToListAsync();
+                
+                foreach (var copyData in loanedCopiesData)
+                {
+                    var shelfLoc = string.IsNullOrWhiteSpace(copyData.ShelfLocation) ? "Belirtilmemiş" : copyData.ShelfLocation;
+                    loanedCopiesList.Add(new { 
+                        CopyId = copyData.CopyId, 
+                        DisplayText = $"{copyData.BookTitle} (Raf: {shelfLoc})"
+                    });
+                }
+            }
+            catch
+            {
+                // Hata durumunda boş liste
+            }
+            
+            ViewBag.AvailableCopies = new SelectList(availableCopiesList, "CopyId", "DisplayText");
+            ViewBag.LoanedCopies = new SelectList(loanedCopiesList, "CopyId", "DisplayText");
+            
+            var pagination = new PaginationViewModel
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                ActionName = "Index",
+                ControllerName = "Loan",
+                QueryParameters = PaginationViewModel.GetQueryParameters(Request)
+            };
+
+            ViewBag.Pagination = pagination;
+            
             return View(loans);
         }
 
@@ -80,6 +161,12 @@ namespace KutuphaneOtomasyonu.Controllers
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;
+
+            // Admin kullanıcıları için Loan/Index sayfasına yönlendir
+            if (_authService.IsAdmin())
+            {
+                return RedirectToAction("Index");
+            }
 
             // Kullanıcının email'ine göre üyeyi bul
             var currentUser = _authService.GetCurrentUser();
@@ -123,6 +210,13 @@ namespace KutuphaneOtomasyonu.Controllers
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;
+
+            // Admin kullanıcıları için Loan/Index sayfasına yönlendir
+            if (_authService.IsAdmin())
+            {
+                TempData["Error"] = "Yöneticiler ödünç işlemlerini Loan/Index sayfasından yapabilir.";
+                return RedirectToAction("Index");
+            }
 
             // Kullanıcının email'ine göre üyeyi bul
             var currentUser = _authService.GetCurrentUser();
@@ -403,6 +497,12 @@ namespace KutuphaneOtomasyonu.Controllers
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;
+
+            // Admin kullanıcıları için Loan/Index sayfasına yönlendir
+            if (_authService.IsAdmin())
+            {
+                return RedirectToAction("Index");
+            }
 
             var currentUser = _authService.GetCurrentUser();
             if (currentUser == null)

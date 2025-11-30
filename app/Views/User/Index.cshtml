@@ -3,7 +3,7 @@
     ViewData["Title"] = "Kullanıcı Yönetimi";
 }
 
-<div class="container-fluid">
+<div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -17,7 +17,7 @@
                         Yeni Kullanıcı
                     </a>
                 </div>
-                <div class="card-body">
+                <div class="card-body p-4">
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -118,6 +118,13 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    @if (ViewBag.Pagination != null)
+                    {
+                        <div class="mt-4">
+                            <partial name="_Pagination" model="ViewBag.Pagination" />
+                        </div>
+                    }
                 </div>
             </div>
         </div>

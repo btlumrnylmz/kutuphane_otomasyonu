@@ -73,6 +73,9 @@ namespace KutuphaneOtomasyonu.Data
             modelBuilder.Entity<Payment>().ToTable("Payments");
             modelBuilder.Entity<ReturnRequest>().ToTable("ReturnRequests");
             modelBuilder.Entity<Favorite>().ToTable("Favorites");
+            
+            // CopyData için keyless entity (raw SQL sorguları için)
+            modelBuilder.Entity<CopyData>().HasNoKey();
 
             // Book: benzersiz ISBN
             modelBuilder.Entity<Book>()
@@ -153,6 +156,12 @@ namespace KutuphaneOtomasyonu.Data
                 .HasConversion<string>()
                 .HasMaxLength(20)
                 .IsRequired();
+            
+            // ShelfLocation için null-safe yapılandırma
+            modelBuilder.Entity<Copy>()
+                .Property(c => c.ShelfLocation)
+                .HasMaxLength(50)
+                .IsRequired(false); // Nullable olabilir
 
             modelBuilder.Entity<Member>()
                 .Property(m => m.Status)

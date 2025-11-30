@@ -23,7 +23,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -42,12 +42,46 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Kullanıcı listesi sayfası.
         /// </summary>
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20, string searchTerm = "")
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
 
-            var users = await _context.Users.AsNoTracking().ToListAsync();
+            IQueryable<User> query = _context.Users.AsNoTracking();
+
+            // Arama filtresi
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(u => 
+                    u.Username.ToLower().Contains(searchTerm) ||
+                    u.Email.ToLower().Contains(searchTerm) ||
+                    u.FullName.ToLower().Contains(searchTerm));
+            }
+
+            var totalItems = await query.CountAsync();
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 5, 100);
+
+            var users = await query
+                .OrderBy(u => u.Username)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var pagination = new PaginationViewModel
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                ActionName = "Index",
+                ControllerName = "User",
+                QueryParameters = PaginationViewModel.GetQueryParameters(Request)
+            };
+
+            ViewBag.Pagination = pagination;
+            ViewBag.SearchTerm = searchTerm;
+
             return View(users);
         }
 

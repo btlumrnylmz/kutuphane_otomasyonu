@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using KutuphaneOtomasyonu.Attributes;
 
 namespace KutuphaneOtomasyonu.Models
 {
@@ -36,7 +37,8 @@ namespace KutuphaneOtomasyonu.Models
         /// Şifre.
         /// </summary>
         [Required(ErrorMessage = "Şifre zorunludur.")]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Şifre en az 6, en fazla 100 karakter olabilir.")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "Şifre en az 8, en fazla 100 karakter olabilir.")]
+        [StrongPassword(ErrorMessage = "Şifre en az 8 karakter olmalı ve büyük harf, küçük harf ve rakam içermelidir.")]
         [DataType(DataType.Password)]
         [Display(Name = "Şifre")]
         public string Password { get; set; } = string.Empty;

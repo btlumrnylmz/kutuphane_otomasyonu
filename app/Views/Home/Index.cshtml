@@ -156,6 +156,32 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Admin Dashboard Charts -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3" style="color: #1E293B;">
+                                <i class="fas fa-chart-line me-2" style="color: #6366F1;"></i>
+                                Aylık Ödünç İstatistikleri
+                            </h5>
+                            <canvas id="monthlyLoansChart" style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-3" style="color: #1E293B;">
+                                <i class="fas fa-chart-pie me-2" style="color: #6366F1;"></i>
+                                Kategori Dağılımı
+                            </h5>
+                            <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
 
         <!-- Quick Actions -->
@@ -246,10 +272,13 @@ else
                     Bilgiye ulaşmanın en kolay yolu kitaplardır. Kütüphanemizde binlerce eser sizi bekliyor.
                 </p>
                 <div class="d-flex gap-3 flex-wrap">
-                    <a asp-controller="Member" asp-action="Register" class="btn btn-light btn-lg px-4" style="border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
-                        <i class="fas fa-user-plus me-2"></i>
-                        Hemen Üye Ol
-                    </a>
+                    @if (!isLoggedIn)
+                    {
+                        <a asp-controller="Member" asp-action="Register" class="btn btn-light btn-lg px-4" style="border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Hemen Üye Ol
+                        </a>
+                    }
                     <a asp-controller="Book" asp-action="Index" class="btn btn-outline-light btn-lg px-4" style="border-radius: 30px; font-weight: 600; border-width: 2px;">
                         <i class="fas fa-book me-2"></i>
                         Kitapları Keşfet
@@ -372,7 +401,7 @@ else
             <div class="carousel-item active">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                        <img src="/img/books/slider1.png" 
                              class="d-block w-100 rounded" alt="Kütüphane">
                     </div>
                     <div class="col-md-6">
@@ -384,7 +413,7 @@ else
             <div class="carousel-item">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                        <img src="/img/books/slider2.png" 
                              class="d-block w-100 rounded" alt="Okuma">
                     </div>
                     <div class="col-md-6">
@@ -396,7 +425,7 @@ else
             <div class="carousel-item">
                 <div class="row align-items-center">
                     <div class="col-md-6">
-                        <img src="https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80" 
+                        <img src="/img/books/slider3.png" 
                              class="d-block w-100 rounded" alt="Öğrenme">
                     </div>
                     <div class="col-md-6">
@@ -466,14 +495,26 @@ else
         <h2 class="mb-3" style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem;">
             Hemen Başlayın!
         </h2>
-        <p class="lead mb-4 fs-5" style="color: #6366F1; max-width: 600px; margin: 0 auto; font-weight: 500;">
-            Kütüphanemizdeki binlerce eserden yararlanmaya başlamak için üye olun. Üyelik tamamen ücretsizdir!
-        </p>
+        @if (!isLoggedIn)
+        {
+            <p class="lead mb-4 fs-5" style="color: #6366F1; max-width: 600px; margin: 0 auto; font-weight: 500;">
+                Kütüphanemizdeki binlerce eserden yararlanmaya başlamak için üye olun. Üyelik tamamen ücretsizdir!
+            </p>
+        }
+        else
+        {
+            <p class="lead mb-4 fs-5" style="color: #6366F1; max-width: 600px; margin: 0 auto; font-weight: 500;">
+                Kütüphanemizdeki binlerce eseri keşfedin ve ödünç alın!
+            </p>
+        }
         <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
-            <a asp-controller="Member" asp-action="Register" class="btn btn-primary btn-lg px-5" style="border-radius: 30px; font-weight: 600; padding: 1rem 2.5rem !important;">
-                <i class="fas fa-user-plus me-2"></i>
-                Üye Ol
-            </a>
+            @if (!isLoggedIn)
+            {
+                <a asp-controller="Member" asp-action="Register" class="btn btn-primary btn-lg px-5" style="border-radius: 30px; font-weight: 600; padding: 1rem 2.5rem !important;">
+                    <i class="fas fa-user-plus me-2"></i>
+                    Üye Ol
+                </a>
+            }
             <a asp-controller="Book" asp-action="Index" class="btn btn-outline-primary btn-lg px-5" style="border-radius: 30px; font-weight: 600; padding: 1rem 2.5rem !important; border-width: 2px;">
                 <i class="fas fa-book me-2"></i>
                 Kitapları Görüntüle
@@ -485,5 +526,70 @@ else
 }
 @section Scripts {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    @if (isDashboard && isAdmin)
+    {
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Aylık Ödünç Grafiği
+                fetch('@Url.Action("GetChartData", "Home")?chartType=monthlyLoans')
+                    .then(response => response.json())
+                    .then(data => {
+                        new Chart(document.getElementById('monthlyLoansChart'), {
+                            type: 'line',
+                            data: {
+                                labels: data.labels,
+                                datasets: [{
+                                    label: 'Ödünç Sayısı',
+                                    data: data.data,
+                                    borderColor: '#6366F1',
+                                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                    tension: 0.4,
+                                    fill: true
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    }
+                                }
+                            }
+                        });
+                    });
+
+                // Kategori Dağılımı Grafiği
+                fetch('@Url.Action("GetChartData", "Home")?chartType=categoryDistribution')
+                    .then(response => response.json())
+                    .then(data => {
+                        new Chart(document.getElementById('categoryChart'), {
+                            type: 'doughnut',
+                            data: {
+                                labels: data.labels,
+                                datasets: [{
+                                    data: data.data,
+                                    backgroundColor: [
+                                        '#6366F1', '#10B981', '#F59E0B', '#EF4444',
+                                        '#EC4899', '#8B5CF6', '#06B6D4', '#84CC16',
+                                        '#F97316', '#14B8A6'
+                                    ]
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    legend: {
+                                        position: 'bottom'
+                                    }
+                                }
+                            }
+                        });
+                    });
+            });
+        </script>
+    }
 }
 

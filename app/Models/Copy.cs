@@ -37,7 +37,7 @@ namespace KutuphaneOtomasyonu.Models
         /// Kopyanın raf konumu.
         /// </summary>
         [StringLength(50, ErrorMessage = "Raf konumu en fazla 50 karakter olabilir.")]
-        public string? ShelfLocation { get; set; }
+        public string? ShelfLocation { get; set; } = null;
 
         /// <summary>
         /// Kopyanın oluşturulma tarihi.

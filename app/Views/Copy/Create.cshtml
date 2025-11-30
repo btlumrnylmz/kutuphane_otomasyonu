@@ -1,35 +1,70 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
 @model KutuphaneOtomasyonu.Models.Copy
 @{
     ViewData["Title"] = "Yeni Kopya";
 }
 
-<h2>Yeni Kopya</h2>
-<hr />
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Yeni Kopya Ekle
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" class="row g-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-<form asp-action="Create" method="post" class="row g-3">
-    <div class="col-md-6">
-        <label class="form-label">Kitap</label>
-        <select asp-for="BookId" class="form-select" asp-items="ViewBag.BookId"></select>
-        <span asp-validation-for="BookId" class="text-danger"></span>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-book me-1"></i>
+                                <strong>Kitap</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="BookId" class="form-select" asp-items="ViewBag.BookId">
+                                <option value="">-- Kitap Seçin --</option>
+                            </select>
+                            <span asp-validation-for="BookId" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Status" class="form-label">
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>Durum</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<KutuphaneOtomasyonu.Models.CopyStatus>()"></select>
+                            <span asp-validation-for="Status" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="ShelfLocation" class="form-label">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                <strong>Raf Konumu</strong>
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="ShelfLocation" class="form-control" placeholder="Örn: A1-05" required />
+                            <span asp-validation-for="ShelfLocation" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Kaydet
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-3">
-        <label asp-for="ShelfLocation" class="form-label">Raf</label>
-        <input asp-for="ShelfLocation" class="form-control" />
-        <span asp-validation-for="ShelfLocation" class="text-danger"></span>
-    </div>
-    <div class="col-md-3">
-        <label asp-for="Status" class="form-label">Durum</label>
-        <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<KutuphaneOtomasyonu.Models.CopyStatus>()"></select>
-        <span asp-validation-for="Status" class="text-danger"></span>
-    </div>
-    <div class="col-12 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Kaydet</button>
-        <a asp-action="Index" class="btn btn-secondary">İptal</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
-

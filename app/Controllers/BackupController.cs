@@ -30,7 +30,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             if (!_authService.IsLoggedIn())
             {

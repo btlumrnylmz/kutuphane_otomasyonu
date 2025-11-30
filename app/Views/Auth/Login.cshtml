@@ -1,7 +1,10 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
 @model KutuphaneOtomasyonu.Models.LoginViewModel
 @{
     ViewData["Title"] = "Giriş Yap";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var isLoggedIn = AuthService.IsLoggedIn();
 }
 
 <div class="container py-5">
@@ -73,12 +76,15 @@
                     </form>
 
                     <div class="text-center mt-4">
-                        <p class="text-muted mb-2">
-                            Henüz üye değil misiniz? 
-                            <a asp-controller="Member" asp-action="Register" style="color: #6366F1; text-decoration: none; font-weight: 600;">
-                                Üye Ol
-                            </a>
-                        </p>
+                        @if (!isLoggedIn)
+                        {
+                            <p class="text-muted mb-2">
+                                Henüz üye değil misiniz? 
+                                <a asp-controller="Member" asp-action="Register" style="color: #6366F1; text-decoration: none; font-weight: 600;">
+                                    Üye Ol
+                                </a>
+                            </p>
+                        }
                         <small class="text-muted">
                             <i class="fas fa-info-circle me-1"></i>
                             Varsayılan yönetici: admin / admin123

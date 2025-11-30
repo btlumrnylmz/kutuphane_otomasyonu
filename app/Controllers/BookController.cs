@@ -1,9 +1,12 @@
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 using KutuphaneOtomasyonu.Data;
 using KutuphaneOtomasyonu.Models;
 using KutuphaneOtomasyonu.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 namespace KutuphaneOtomasyonu.Controllers
@@ -15,17 +18,19 @@ namespace KutuphaneOtomasyonu.Controllers
     {
         private readonly LibraryContext _context;
         private readonly AuthService _authService;
+        private readonly IWebHostEnvironment _env;
 
-        public BookController(LibraryContext context, AuthService authService)
+        public BookController(LibraryContext context, AuthService authService, IWebHostEnvironment env)
         {
             _context = context;
             _authService = authService;
+            _env = env;
         }
 
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -42,9 +47,9 @@ namespace KutuphaneOtomasyonu.Controllers
         }
 
         /// <summary>
-        /// Kitap listesi. Arama ve filtreleme destekler.
+        /// Kitap listesi. Arama, filtreleme ve pagination destekler.
         /// </summary>
-        public async Task<IActionResult> Index(string searchTerm, string category, string author)
+        public async Task<IActionResult> Index(string searchTerm, string category, string author, int page = 1, int pageSize = 20)
         {
             IQueryable<Book> query = _context.Books.AsNoTracking();
             
@@ -71,7 +76,19 @@ namespace KutuphaneOtomasyonu.Controllers
                 query = query.Where(b => b.Author == author);
             }
             
-            var books = await query.ToListAsync();
+            // Toplam kayıt sayısı
+            var totalItems = await query.CountAsync();
+            
+            // Pagination parametreleri
+            page = Math.Max(1, page);
+            pageSize = Math.Clamp(pageSize, 5, 100); // Min 5, Max 100
+            
+            // Sayfalama
+            var books = await query
+                .OrderBy(b => b.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
             
             // Kategorileri ve yazarları filtre için al
             var categories = await _context.Books
@@ -91,6 +108,19 @@ namespace KutuphaneOtomasyonu.Controllers
             ViewBag.SearchTerm = searchTerm;
             ViewBag.SelectedCategory = category;
             ViewBag.SelectedAuthor = author;
+            
+            // Pagination model
+            var pagination = new PaginationViewModel
+            {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                ActionName = "Index",
+                ControllerName = "Book",
+                QueryParameters = PaginationViewModel.GetQueryParameters(Request)
+            };
+            
+            ViewBag.Pagination = pagination;
             
             // Kullanıcının favori kitaplarını al
             if (_authService.IsLoggedIn())
@@ -148,11 +178,11 @@ namespace KutuphaneOtomasyonu.Controllers
         }
 
         /// <summary>
-        /// Yeni kitap oluşturma post işlemi.
+        /// Yeni kitap oluşturma post işlemi. Dosya yükleme destekler.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("BookId,Isbn,Title,Author,PublishYear,Category,Description,PageCount,CoverImageUrl")] Book book)
+        public async Task<IActionResult> Create([Bind("BookId,Isbn,Title,Author,PublishYear,Category,Description,PageCount")] Book book, IFormFile? coverImage)
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
@@ -161,6 +191,50 @@ namespace KutuphaneOtomasyonu.Controllers
             {
                 try
                 {
+                    // Dosya yükleme işlemi
+                    if (coverImage != null && coverImage.Length > 0)
+                    {
+                        // Dosya boyutu kontrolü (5MB)
+                        if (coverImage.Length > 5 * 1024 * 1024)
+                        {
+                            ModelState.AddModelError("", "Dosya boyutu 5MB'dan büyük olamaz.");
+                            return View(book);
+                        }
+
+                        // Dosya uzantısı kontrolü
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                        var fileExtension = Path.GetExtension(coverImage.FileName).ToLowerInvariant();
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            ModelState.AddModelError("", "Sadece JPG, JPEG ve PNG dosyaları yüklenebilir.");
+                            return View(book);
+                        }
+
+                        // Dosya adını oluştur (ISBN veya benzersiz ID kullan)
+                        var fileName = !string.IsNullOrWhiteSpace(book.Isbn) 
+                            ? $"{book.Isbn.Replace(" ", "_").Replace("-", "_")}{fileExtension}"
+                            : $"{Guid.NewGuid()}{fileExtension}";
+
+                        // wwwroot/img/books/ klasörünü oluştur
+                        var uploadPath = Path.Combine(_env.WebRootPath, "img", "books");
+                        if (!Directory.Exists(uploadPath))
+                        {
+                            Directory.CreateDirectory(uploadPath);
+                        }
+
+                        // Dosya yolunu oluştur
+                        var filePath = Path.Combine(uploadPath, fileName);
+
+                        // Dosyayı kaydet
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await coverImage.CopyToAsync(stream);
+                        }
+
+                        // CoverImageUrl'yi ayarla
+                        book.CoverImageUrl = $"/img/books/{fileName}";
+                    }
+
                     _context.Add(book);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = "Kitap başarıyla eklendi.";
@@ -195,11 +269,11 @@ namespace KutuphaneOtomasyonu.Controllers
         }
 
         /// <summary>
-        /// Kitap düzenleme post işlemi.
+        /// Kitap düzenleme post işlemi. Dosya yükleme destekler.
         /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("BookId,Isbn,Title,Author,PublishYear,Category,Description,PageCount,CoverImageUrl")] Book book)
+        public async Task<IActionResult> Edit(int id, [Bind("BookId,Isbn,Title,Author,PublishYear,Category,Description,PageCount,CoverImageUrl")] Book book, IFormFile? coverImage)
         {
             var adminCheck = CheckAdminAccess();
             if (adminCheck != null) return adminCheck;
@@ -209,6 +283,67 @@ namespace KutuphaneOtomasyonu.Controllers
 
             try
             {
+                // Dosya yükleme işlemi (yeni dosya yüklenirse)
+                if (coverImage != null && coverImage.Length > 0)
+                {
+                    // Dosya boyutu kontrolü (5MB)
+                    if (coverImage.Length > 5 * 1024 * 1024)
+                    {
+                        ModelState.AddModelError("", "Dosya boyutu 5MB'dan büyük olamaz.");
+                        return View(book);
+                    }
+
+                    // Dosya uzantısı kontrolü
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
+                    var fileExtension = Path.GetExtension(coverImage.FileName).ToLowerInvariant();
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        ModelState.AddModelError("", "Sadece JPG, JPEG ve PNG dosyaları yüklenebilir.");
+                        return View(book);
+                    }
+
+                    // Eski resmi sil (varsa ve yeni bir resim yükleniyorsa)
+                    if (!string.IsNullOrWhiteSpace(book.CoverImageUrl) && book.CoverImageUrl.StartsWith("/img/books/"))
+                    {
+                        var oldFilePath = Path.Combine(_env.WebRootPath, book.CoverImageUrl.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        if (System.IO.File.Exists(oldFilePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldFilePath);
+                            }
+                            catch
+                            {
+                                // Eski dosya silinemezse devam et
+                            }
+                        }
+                    }
+
+                    // Dosya adını oluştur (ISBN veya benzersiz ID kullan)
+                    var fileName = !string.IsNullOrWhiteSpace(book.Isbn) 
+                        ? $"{book.Isbn.Replace(" ", "_").Replace("-", "_")}{fileExtension}"
+                        : $"{Guid.NewGuid()}{fileExtension}";
+
+                    // wwwroot/img/books/ klasörünü oluştur
+                    var uploadPath = Path.Combine(_env.WebRootPath, "img", "books");
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    // Dosya yolunu oluştur
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    // Dosyayı kaydet
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await coverImage.CopyToAsync(stream);
+                    }
+
+                    // CoverImageUrl'yi ayarla
+                    book.CoverImageUrl = $"/img/books/{fileName}";
+                }
+
                 _context.Update(book);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Kitap başarıyla güncellendi.";
@@ -353,6 +488,7 @@ namespace KutuphaneOtomasyonu.Controllers
             TempData["Success"] = $"'{bookTitle}' favorilerinizden çıkarıldı.";
             return RedirectToAction(nameof(Details), new { id = bookId });
         }
+
 
         /// <summary>
         /// Kullanıcının favori kitapları listesi.

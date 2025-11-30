@@ -17,22 +17,22 @@
                     </h3>
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <div class="row g-4">
                         @if (isAdmin)
                         {
-                            <div class="col-md-6 col-lg-3 mb-4">
-                                <div class="card bg-info text-white">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card bg-info text-white h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex justify-content-between mb-3">
                                             <div>
                                                 <h4 class="card-title">Aktif Ödünçler</h4>
-                                                <p class="card-text">Şu anda ödünç verilen kitaplar</p>
+                                                <p class="card-text mb-0">Şu anda ödünç verilen kitaplar</p>
                                             </div>
                                             <div class="align-self-center">
                                                 <i class="fas fa-book-reader fa-2x"></i>
                                             </div>
                                         </div>
-                                        <a asp-action="ActiveLoans" class="btn btn-light btn-sm">
+                                        <a asp-action="ActiveLoans" class="btn btn-light btn-sm mt-auto">
                                             <i class="fas fa-eye me-1"></i>
                                             Raporu Görüntüle
                                         </a>
@@ -41,19 +41,19 @@
                             </div>
                         }
 
-                        <div class="col-md-6 col-lg-3 mb-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
+                        <div class="col-md-6 col-lg-3">
+                            <div class="card bg-success text-white h-100">
+                                <div class="card-body d-flex flex-column">
+                                    <div class="d-flex justify-content-between mb-3">
                                         <div>
                                             <h4 class="card-title">En Çok Ödünç Alınan Kitaplar</h4>
-                                            <p class="card-text">Popüler kitaplar listesi</p>
+                                            <p class="card-text mb-0">Popüler kitaplar listesi</p>
                                         </div>
                                         <div class="align-self-center">
                                             <i class="fas fa-trophy fa-2x"></i>
                                         </div>
                                     </div>
-                                    <a asp-action="TopBooks" class="btn btn-light btn-sm">
+                                    <a asp-action="TopBooks" class="btn btn-light btn-sm mt-auto">
                                         <i class="fas fa-eye me-1"></i>
                                         Raporu Görüntüle
                                     </a>
@@ -63,19 +63,19 @@
 
                         @if (isAdmin)
                         {
-                            <div class="col-md-6 col-lg-3 mb-4">
-                                <div class="card bg-warning text-dark">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card bg-warning text-dark h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex justify-content-between mb-3">
                                             <div>
                                                 <h4 class="card-title">Üye Ödünç Sayıları</h4>
-                                                <p class="card-text">Üyelerin ödünç istatistikleri</p>
+                                                <p class="card-text mb-0">Üyelerin ödünç istatistikleri</p>
                                             </div>
                                             <div class="align-self-center">
                                                 <i class="fas fa-users fa-2x"></i>
                                             </div>
                                         </div>
-                                        <a asp-action="MemberLoanCounts" class="btn btn-dark btn-sm">
+                                        <a asp-action="MemberLoanCounts" class="btn btn-dark btn-sm mt-auto">
                                             <i class="fas fa-eye me-1"></i>
                                             Raporu Görüntüle
                                         </a>
@@ -86,19 +86,19 @@
 
                         @if (isAdmin)
                         {
-                            <div class="col-md-6 col-lg-3 mb-4">
-                                <div class="card bg-secondary text-white">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card bg-secondary text-white h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex justify-content-between mb-3">
                                             <div>
                                                 <h4 class="card-title">Rezervasyonlar</h4>
-                                                <p class="card-text">Bekleyen rezervasyonlar</p>
+                                                <p class="card-text mb-0">Bekleyen rezervasyonlar</p>
                                             </div>
                                             <div class="align-self-center">
                                                 <i class="fas fa-clock fa-2x"></i>
                                             </div>
                                         </div>
-                                        <a asp-action="Reservations" class="btn btn-light btn-sm">
+                                        <a asp-action="Reservations" class="btn btn-light btn-sm mt-auto">
                                             <i class="fas fa-eye me-1"></i>
                                             Raporu Görüntüle
                                         </a>
@@ -108,22 +108,22 @@
                         }
                     </div>
 
-                    <div class="row">
+                    <div class="row g-4 mt-2">
                         @if (isAdmin)
                         {
-                            <div class="col-md-6 col-lg-3 mb-4">
-                                <div class="card bg-dark text-white">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
+                            <div class="col-md-6 col-lg-3">
+                                <div class="card bg-dark text-white h-100">
+                                    <div class="card-body d-flex flex-column">
+                                        <div class="d-flex justify-content-between mb-3">
                                             <div>
                                                 <h4 class="card-title">Sistem Logları</h4>
-                                                <p class="card-text">Audit log kayıtları</p>
+                                                <p class="card-text mb-0">Audit log kayıtları</p>
                                             </div>
                                             <div class="align-self-center">
                                                 <i class="fas fa-file-alt fa-2x"></i>
                                             </div>
                                         </div>
-                                        <a asp-action="AuditLog" class="btn btn-light btn-sm">
+                                        <a asp-action="AuditLog" class="btn btn-light btn-sm mt-auto">
                                             <i class="fas fa-eye me-1"></i>
                                             Raporu Görüntüle
                                         </a>

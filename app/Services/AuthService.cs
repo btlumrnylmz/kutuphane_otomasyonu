@@ -3,6 +3,8 @@ using System.Text;
 using KutuphaneOtomasyonu.Data;
 using KutuphaneOtomasyonu.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using BCrypt.Net;
 
 namespace KutuphaneOtomasyonu.Services
 {
@@ -13,6 +15,7 @@ namespace KutuphaneOtomasyonu.Services
     {
         private readonly LibraryContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string SESSION_USER_KEY = "UserSession";
 
         public AuthService(LibraryContext context, IHttpContextAccessor httpContextAccessor)
         {
@@ -59,38 +62,93 @@ namespace KutuphaneOtomasyonu.Services
         }
 
         /// <summary>
-        /// Şifreyi hash'ler.
+        /// Şifreyi hash'ler. BCrypt kullanır.
         /// </summary>
         /// <param name="password">Ham şifre</param>
-        /// <returns>Hash'lenmiş şifre</returns>
+        /// <returns>Hash'lenmiş şifre (BCrypt formatında)</returns>
         public string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + "LibrarySalt2024"));
-            return Convert.ToBase64String(hashedBytes);
+            return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
         }
 
         /// <summary>
-        /// Şifreyi doğrular.
+        /// Şifreyi doğrular. Hem BCrypt hem eski SHA256 hash'lerini destekler (geriye dönük uyumluluk).
         /// </summary>
         /// <param name="password">Ham şifre</param>
         /// <param name="hashedPassword">Hash'lenmiş şifre</param>
         /// <returns>Şifre doğru ise true</returns>
         private bool VerifyPassword(string password, string hashedPassword)
         {
-            return HashPassword(password) == hashedPassword;
+            // BCrypt hash kontrolü (BCrypt hash'ler $2a$, $2b$, $2y$ ile başlar)
+            if (hashedPassword.StartsWith("$2") && BCrypt.Net.BCrypt.Verify(password, hashedPassword))
+            {
+                return true;
+            }
+
+            // Eski SHA256 hash'leri için geriye dönük uyumluluk
+            try
+            {
+                using var sha256 = SHA256.Create();
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password + "LibrarySalt2024"));
+                var oldHash = Convert.ToBase64String(hashedBytes);
+                return oldHash == hashedPassword;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         /// <summary>
-        /// Mevcut kullanıcıyı session'dan alır.
+        /// Mevcut kullanıcıyı session'dan alır. Session'da user bilgileri varsa oradan, yoksa veritabanından alır.
         /// </summary>
         /// <returns>Giriş yapmış kullanıcı veya null</returns>
         public User? GetCurrentUser()
         {
-            var userId = _httpContextAccessor.HttpContext?.Session.GetInt32("UserId");
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null) return null;
+
+            // Session'dan user bilgilerini al (optimizasyon)
+            var userJson = httpContext.Session.GetString(SESSION_USER_KEY);
+            if (!string.IsNullOrEmpty(userJson))
+            {
+                try
+                {
+                    var userSession = JsonSerializer.Deserialize<UserSession>(userJson);
+                    if (userSession != null)
+                    {
+                        // Session'dan user bilgilerini döndür (veritabanı sorgusu yok)
+                        return new User
+                        {
+                            UserId = userSession.UserId,
+                            Username = userSession.Username,
+                            Email = userSession.Email,
+                            FullName = userSession.FullName,
+                            Role = userSession.Role,
+                            Status = userSession.Status
+                        };
+                    }
+                }
+                catch
+                {
+                    // JSON deserialize hatası - session'ı temizle ve veritabanından al
+                    httpContext.Session.Remove(SESSION_USER_KEY);
+                }
+            }
+
+            // Eski yöntem: session'da userId var mı kontrol et (geriye dönük uyumluluk)
+            var userId = httpContext.Session.GetInt32("UserId");
             if (userId == null) return null;
 
-            return _context.Users.Find(userId);
+            var user = _context.Users.AsNoTracking().FirstOrDefault(u => u.UserId == userId);
+            
+            // Bulunan kullanıcıyı session'a kaydet (bir sonraki çağrıda hızlı olsun)
+            if (user != null)
+            {
+                SetUserSession(user);
+            }
+
+            return user;
         }
 
         /// <summary>
@@ -113,12 +171,43 @@ namespace KutuphaneOtomasyonu.Services
         }
 
         /// <summary>
-        /// Kullanıcıyı session'a kaydeder.
+        /// Kullanıcıyı session'a kaydeder. Tüm gerekli bilgileri session'da saklar.
         /// </summary>
         /// <param name="user">Kullanıcı bilgileri</param>
         public void SetUserSession(User user)
         {
-            _httpContextAccessor.HttpContext?.Session.SetInt32("UserId", user.UserId);
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null) return;
+
+            // Eski yöntem (geriye dönük uyumluluk)
+            httpContext.Session.SetInt32("UserId", user.UserId);
+
+            // Yeni yöntem: Tüm user bilgilerini session'da sakla
+            var userSession = new UserSession
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                FullName = user.FullName,
+                Role = user.Role,
+                Status = user.Status
+            };
+
+            var userJson = JsonSerializer.Serialize(userSession);
+            httpContext.Session.SetString(SESSION_USER_KEY, userJson);
+        }
+
+        /// <summary>
+        /// Session'da saklanan user bilgileri için model.
+        /// </summary>
+        private class UserSession
+        {
+            public int UserId { get; set; }
+            public string Username { get; set; } = string.Empty;
+            public string Email { get; set; } = string.Empty;
+            public string FullName { get; set; } = string.Empty;
+            public UserRole Role { get; set; }
+            public UserStatus Status { get; set; }
         }
 
         /// <summary>
@@ -126,7 +215,11 @@ namespace KutuphaneOtomasyonu.Services
         /// </summary>
         public void Logout()
         {
-            _httpContextAccessor.HttpContext?.Session.Remove("UserId");
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext == null) return;
+
+            httpContext.Session.Remove("UserId");
+            httpContext.Session.Remove(SESSION_USER_KEY);
         }
 
         /// <summary>

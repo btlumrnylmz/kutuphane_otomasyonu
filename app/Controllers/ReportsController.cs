@@ -25,7 +25,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Giriş kontrolü yapar.
         /// </summary>
-        private IActionResult CheckLoginAccess()
+        private IActionResult? CheckLoginAccess()
         {
             if (!_authService.IsLoggedIn())
             {
@@ -38,7 +38,7 @@ namespace KutuphaneOtomasyonu.Controllers
         /// <summary>
         /// Yönetici yetkisi kontrolü yapar.
         /// </summary>
-        private IActionResult CheckAdminAccess()
+        private IActionResult? CheckAdminAccess()
         {
             var loginCheck = CheckLoginAccess();
             if (loginCheck != null) return loginCheck;

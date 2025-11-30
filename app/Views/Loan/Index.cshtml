@@ -114,4 +114,11 @@
     </tbody>
 }</table>
 
+@if (ViewBag.Pagination != null)
+{
+    <div class="mt-4">
+        <partial name="_Pagination" model="ViewBag.Pagination" />
+    </div>
+}
+
 

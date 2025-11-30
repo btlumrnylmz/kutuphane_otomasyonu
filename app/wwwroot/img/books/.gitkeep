@@ -1,0 +1,3 @@
+# Bu klasör kitap kapak resimlerini tutar
+# Resim dosyalarını buraya yükleyin ve SeedData.AddBooksFromImageMapping() metodunu kullanarak kitapları ekleyin
+

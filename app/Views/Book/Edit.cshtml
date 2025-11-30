@@ -1,62 +1,114 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
 @model KutuphaneOtomasyonu.Models.Book
 @{
     ViewData["Title"] = "Kitap Düzenle";
 }
 
-<h2>Kitap Düzenle</h2>
-<hr />
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-warning text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2"></i>
+                        Kitap Düzenle
+                    </h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data" class="row g-3">
+                        <input type="hidden" asp-for="BookId" />
+                        <input type="hidden" asp-for="CoverImageUrl" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-<form asp-action="Edit" method="post" class="row g-3">
-    <input type="hidden" asp-for="BookId" />
-    <div class="col-md-4">
-        <label asp-for="Isbn" class="form-label">ISBN</label>
-        <input asp-for="Isbn" class="form-control" />
-        <span asp-validation-for="Isbn" class="text-danger"></span>
+                        <div class="col-md-4">
+                            <label asp-for="Isbn" class="form-label">
+                                <i class="fas fa-barcode me-1"></i>
+                                <strong>ISBN</strong>
+                            </label>
+                            <input asp-for="Isbn" class="form-control" placeholder="ISBN numarasını girin" />
+                            <span asp-validation-for="Isbn" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="Title" class="form-label">
+                                <i class="fas fa-book me-1"></i>
+                                <strong>Kitap Başlığı</strong>
+                            </label>
+                            <input asp-for="Title" class="form-control" placeholder="Kitap başlığını girin" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Author" class="form-label">
+                                <i class="fas fa-user me-1"></i>
+                                <strong>Yazar</strong>
+                            </label>
+                            <input asp-for="Author" class="form-control" placeholder="Yazar adını girin" />
+                            <span asp-validation-for="Author" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="PublishYear" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>
+                                <strong>Yayın Yılı</strong>
+                            </label>
+                            <input asp-for="PublishYear" type="number" class="form-control" placeholder="Yıl" min="1000" max="@DateTime.Now.Year" />
+                            <span asp-validation-for="PublishYear" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Category" class="form-label">
+                                <i class="fas fa-tag me-1"></i>
+                                <strong>Kategori</strong>
+                            </label>
+                            <input asp-for="Category" class="form-control" placeholder="Kategori" />
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="PageCount" class="form-label">
+                                <i class="fas fa-file-alt me-1"></i>
+                                <strong>Sayfa Sayısı</strong>
+                            </label>
+                            <input asp-for="PageCount" type="number" class="form-control" placeholder="Sayfa sayısı" min="1" />
+                            <span asp-validation-for="PageCount" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="coverImage" class="form-label">
+                                <i class="fas fa-image me-1"></i>
+                                <strong>Kapak Görseli</strong>
+                            </label>
+                            @if (!string.IsNullOrWhiteSpace(Model.CoverImageUrl))
+                            {
+                                <div class="mb-2">
+                                    <small class="text-muted d-block mb-1">Mevcut görsel:</small>
+                                    <img src="@Model.CoverImageUrl" alt="@Model.Title" class="img-thumbnail" style="max-height: 150px; max-width: 150px;" />
+                                </div>
+                            }
+                            <input type="file" id="coverImage" name="coverImage" class="form-control" accept="image/jpeg,image/jpg,image/png" />
+                            <small class="form-text text-muted">Yeni görsel yüklerseniz mevcut görsel değiştirilir. JPG, JPEG veya PNG formatında (maks. 5MB)</small>
+                        </div>
+                        <div class="col-12">
+                            <label asp-for="Description" class="form-label">
+                                <i class="fas fa-align-left me-1"></i>
+                                <strong>Açıklama</strong>
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="4" placeholder="Kitap hakkında kısa bir açıklama..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Güncelle
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-8">
-        <label asp-for="Title" class="form-label">Başlık</label>
-        <input asp-for="Title" class="form-control" />
-        <span asp-validation-for="Title" class="text-danger"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="Author" class="form-label">Yazar</label>
-        <input asp-for="Author" class="form-control" />
-        <span asp-validation-for="Author" class="text-danger"></span>
-    </div>
-    <div class="col-md-3">
-        <label asp-for="PublishYear" class="form-label">Yayın Yılı</label>
-        <input asp-for="PublishYear" class="form-control" />
-        <span asp-validation-for="PublishYear" class="text-danger"></span>
-    </div>
-    <div class="col-md-3">
-        <label asp-for="Category" class="form-label">Kategori</label>
-        <input asp-for="Category" class="form-control" />
-        <span asp-validation-for="Category" class="text-danger"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="PageCount" class="form-label">Sayfa Sayısı</label>
-        <input asp-for="PageCount" type="number" class="form-control" />
-        <span asp-validation-for="PageCount" class="text-danger"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="CoverImageUrl" class="form-label">Kapak Görsel URL</label>
-        <input asp-for="CoverImageUrl" type="url" class="form-control" placeholder="https://example.com/image.jpg" />
-        <span asp-validation-for="CoverImageUrl" class="text-danger"></span>
-        <small class="form-text text-muted">Kitap kapağı görselinin URL adresi</small>
-    </div>
-    <div class="col-12">
-        <label asp-for="Description" class="form-label">Açıklama</label>
-        <textarea asp-for="Description" class="form-control" rows="4" placeholder="Kitap hakkında kısa bir açıklama..."></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
-    </div>
-    <div class="col-12 d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Güncelle</button>
-        <a asp-action="Index" class="btn btn-secondary">İptal</a>
-    </div>
-</form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 }
-
-

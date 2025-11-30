@@ -357,9 +357,6 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.Property<int>("CopyId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CopyId1")
-                        .HasColumnType("int");
-
                     b.Property<int>("MemberId")
                         .HasColumnType("int");
 
@@ -372,8 +369,6 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.HasKey("ReservationId");
 
                     b.HasIndex("CopyId");
-
-                    b.HasIndex("CopyId1");
 
                     b.HasIndex("MemberId");
 
@@ -536,14 +531,10 @@ namespace KutuphaneOtomasyonu.Migrations
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Reservation", b =>
                 {
                     b.HasOne("KutuphaneOtomasyonu.Models.Copy", "Copy")
-                        .WithMany()
+                        .WithMany("Reservations")
                         .HasForeignKey("CopyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("KutuphaneOtomasyonu.Models.Copy", null)
-                        .WithMany("Reservations")
-                        .HasForeignKey("CopyId1");
 
                     b.HasOne("KutuphaneOtomasyonu.Models.Member", "Member")
                         .WithMany()
