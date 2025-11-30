@@ -65,6 +65,12 @@ namespace KutuphaneOtomasyonu.Models
         public string? Description { get; set; }
 
         /// <summary>
+        /// Kitap kapağı görsel URL'i.
+        /// </summary>
+        [StringLength(500, ErrorMessage = "Kapak görsel URL'i en fazla 500 karakter olabilir.")]
+        public string? CoverImageUrl { get; set; }
+
+        /// <summary>
         /// Kitabın oluşturulma tarihi.
         /// </summary>
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

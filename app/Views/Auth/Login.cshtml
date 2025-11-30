@@ -4,20 +4,24 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container mt-5">
+<div class="container py-5">
     <div class="row justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white text-center">
-                    <h4 class="mb-0">
-                        <i class="fas fa-sign-in-alt me-2"></i>
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+                <div class="text-center py-4" style="background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #818CF8 100%);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-sign-in-alt fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-0 text-white" style="font-family: 'Playfair Display', serif;">
                         Giriş Yap
-                    </h4>
+                    </h3>
+                    <p class="text-white-50 mb-0 mt-2">Kütüphanemize hoş geldiniz</p>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-5">
                     @if (TempData["Success"] != null)
                     {
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                            <i class="fas fa-check-circle me-2"></i>
                             @TempData["Success"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -25,7 +29,8 @@
 
                     @if (TempData["Error"] != null)
                     {
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                            <i class="fas fa-exclamation-circle me-2"></i>
                             @TempData["Error"]
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
@@ -34,44 +39,51 @@
                     <form asp-action="Login" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="UsernameOrEmail" class="form-label">
-                                <i class="fas fa-user me-1"></i>
+                        <div class="mb-4">
+                            <label asp-for="UsernameOrEmail" class="form-label fw-semibold" style="color: #1E293B;">
+                                <i class="fas fa-user me-2" style="color: #6366F1;"></i>
                                 Kullanıcı Adı veya E-posta
                             </label>
-                            <input asp-for="UsernameOrEmail" class="form-control" placeholder="Kullanıcı adınızı veya e-posta adresinizi girin" />
+                            <input asp-for="UsernameOrEmail" class="form-control" placeholder="Kullanıcı adınızı veya e-posta adresinizi girin" style="padding: 0.75rem 1rem; border-radius: 10px;" />
                             <span asp-validation-for="UsernameOrEmail" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label">
-                                <i class="fas fa-lock me-1"></i>
+                        <div class="mb-4">
+                            <label asp-for="Password" class="form-label fw-semibold" style="color: #1E293B;">
+                                <i class="fas fa-lock me-2" style="color: #6366F1;"></i>
                                 Şifre
                             </label>
-                            <input asp-for="Password" class="form-control" placeholder="Şifrenizi girin" />
+                            <input asp-for="Password" class="form-control" placeholder="Şifrenizi girin" style="padding: 0.75rem 1rem; border-radius: 10px;" />
                             <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
 
-                        <div class="mb-3 form-check">
-                            <input asp-for="RememberMe" class="form-check-input" />
-                            <label asp-for="RememberMe" class="form-check-label">
+                        <div class="mb-4 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" style="margin-top: 0.3rem;" />
+                            <label asp-for="RememberMe" class="form-check-label" style="color: #1E293B;">
                                 Beni Hatırla
                             </label>
                         </div>
 
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 30px; padding: 0.875rem;">
                                 <i class="fas fa-sign-in-alt me-2"></i>
                                 Giriş Yap
                             </button>
                         </div>
                     </form>
-                </div>
-                <div class="card-footer text-center text-muted">
-                    <small>
-                        <i class="fas fa-info-circle me-1"></i>
-                        Varsayılan yönetici: admin / admin123
-                    </small>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-2">
+                            Henüz üye değil misiniz? 
+                            <a asp-controller="Member" asp-action="Register" style="color: #6366F1; text-decoration: none; font-weight: 600;">
+                                Üye Ol
+                            </a>
+                        </p>
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Varsayılan yönetici: admin / admin123
+                        </small>
+                    </div>
                 </div>
             </div>
         </div>

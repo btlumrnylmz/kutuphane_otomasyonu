@@ -1,0 +1,131 @@
+@{
+    ViewData["Title"] = "Geri Yükleme";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                <i class="fas fa-undo me-2" style="color: #EF4444;"></i>
+                Veritabanı Geri Yükleme
+            </h1>
+            <p class="text-muted mt-2 mb-0">SQL Server yedek dosyasından geri yükleme işlemi</p>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="alert alert-danger" style="border-radius: 10px;">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>UYARI:</strong> Geri yükleme işlemi mevcut tüm verileri siler ve yedekten geri yükler. 
+        Bu işlem geri alınamaz! İşlem öncesi mutlaka yeni bir yedek alın.
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4" style="color: #1E293B;">
+                <i class="fas fa-code me-2" style="color: #6366F1;"></i>
+                Geri Yükleme Komutu Oluştur
+            </h5>
+
+            <form asp-action="GenerateRestoreCommand" method="post" class="mb-4">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label for="backupFilePath" class="form-label">
+                        <strong>Yedek Dosya Yolu (BAK dosyası):</strong>
+                    </label>
+                    <input type="text" 
+                           name="backupFilePath" 
+                           id="backupFilePath" 
+                           class="form-control" 
+                           placeholder="Örn: C:\Backups\KutuphaneOtomasyonu_20241201_120000.bak"
+                           required />
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Geri yüklenecek .bak dosyasının tam yolunu girin.
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-danger" style="border-radius: 10px;">
+                    <i class="fas fa-code me-2"></i>
+                    Geri Yükleme Komutunu Oluştur
+                </button>
+            </form>
+
+            @if (ViewBag.SqlCommand != null)
+            {
+                <div class="alert alert-warning" style="border-radius: 10px;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Dikkat:</strong> Aşağıdaki komutu çalıştırmadan önce mevcut veritabanını yedeklediğinizden emin olun!
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>SQL Geri Yükleme Komutu:</strong>
+                    </label>
+                    <textarea class="form-control" rows="20" readonly style="font-family: 'Courier New', monospace; font-size: 0.9rem;">@ViewBag.SqlCommand</textarea>
+                    <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyToClipboard()">
+                        <i class="fas fa-copy me-1"></i>
+                        Kopyala
+                    </button>
+                </div>
+
+                <div class="alert alert-info" style="border-radius: 10px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Kullanım:</strong>
+                    <ol class="mb-0 mt-2">
+                        <li>Yukarıdaki komutu kopyalayın</li>
+                        <li>SQL Server Management Studio'yu açın</li>
+                        <li>Yeni bir query penceresi açın</li>
+                        <li>Komutu yapıştırın ve çalıştırın (F5)</li>
+                        <li>İşlem tamamlandıktan sonra uygulamayı yeniden başlatın</li>
+                    </ol>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" style="border-radius: 10px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Geri yükleme komutunu oluşturmak için yukarıdaki formu doldurun.
+                </div>
+            }
+
+            <div class="d-flex gap-2 mt-4">
+                <a asp-action="Index" class="btn btn-secondary" style="border-radius: 10px;">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Geri Dön
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const textarea = document.querySelector('textarea');
+    textarea.select();
+    document.execCommand('copy');
+    
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Kopyalandı!';
+    btn.classList.add('btn-success');
+    btn.classList.remove('btn-outline-secondary');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+
+
+
+

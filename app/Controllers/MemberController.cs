@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using KutuphaneOtomasyonu.Data;
@@ -39,6 +40,157 @@ namespace KutuphaneOtomasyonu.Controllers
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Kullanıcılar için kendi profil sayfası (giriş yapmış kullanıcılar için).
+        /// </summary>
+        public async Task<IActionResult> Profile()
+        {
+            if (!_authService.IsLoggedIn())
+            {
+                TempData["Error"] = "Bu sayfaya erişmek için giriş yapmalısınız.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var currentUser = _authService.GetCurrentUser();
+            if (currentUser == null)
+            {
+                TempData["Error"] = "Kullanıcı bilgisi bulunamadı.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // Kullanıcının email'ine göre üyeyi bul
+            var member = await _context.Members
+                .Include(m => m.Loans)
+                    .ThenInclude(l => l.Copy)
+                        .ThenInclude(c => c.Book)
+                .FirstOrDefaultAsync(m => m.Email.ToLower() == currentUser.Email.ToLower());
+
+            if (member == null)
+            {
+                TempData["Error"] = "Üye kaydınız bulunamadı. Lütfen yönetici ile iletişime geçin.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // İstatistikler
+            var activeLoans = member.Loans?.Count(l => l.ReturnedAt == null) ?? 0;
+            var overdueLoans = member.Loans?.Count(l => l.ReturnedAt == null && l.DueAt < DateTime.UtcNow) ?? 0;
+            var totalLoans = member.Loans?.Count ?? 0;
+            var favoriteBooks = await _context.Favorites.CountAsync(f => f.UserId == currentUser.UserId);
+
+            ViewBag.ActiveLoans = activeLoans;
+            ViewBag.OverdueLoans = overdueLoans;
+            ViewBag.TotalLoans = totalLoans;
+            ViewBag.FavoriteBooks = favoriteBooks;
+            ViewBag.User = currentUser;
+
+            return View(member);
+        }
+
+        /// <summary>
+        /// Üye kayıt sayfası (yönetici kontrolü olmadan, herkes erişebilir).
+        /// </summary>
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Üye kayıt işlemi (yönetici kontrolü olmadan).
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(MemberRegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    // Email'in hem Member hem de User tablolarında kullanılıp kullanılmadığını kontrol et
+                    var emailExists = await _context.Members.AnyAsync(m => m.Email.ToLower() == model.Email.ToLower()) ||
+                                     await _context.Users.AnyAsync(u => u.Email.ToLower() == model.Email.ToLower());
+
+                    if (emailExists)
+                    {
+                        ModelState.AddModelError("Email", "Bu e-posta adresi zaten kullanılmaktadır. Lütfen farklı bir e-posta girin.");
+                        return View(model);
+                    }
+
+                    // Username olarak email'in @ öncesi kısmını kullan (eğer benzersiz değilse email'in tamamını kullan)
+                    var username = model.Email.Split('@')[0];
+                    var usernameExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower());
+                    if (usernameExists)
+                    {
+                        username = model.Email.Replace("@", "_").Replace(".", "_");
+                    }
+
+                    using var transaction = await _context.Database.BeginTransactionAsync();
+                    try
+                    {
+                        // Member oluştur
+                        var member = new Member
+                        {
+                            FullName = model.FullName,
+                            Email = model.Email,
+                            Phone = model.Phone,
+                            JoinedAt = DateTime.UtcNow,
+                            Status = MemberStatus.Active
+                        };
+                        _context.Members.Add(member);
+                        await _context.SaveChangesAsync();
+
+                        // User oluştur (giriş için)
+                        var user = new User
+                        {
+                            Username = username,
+                            Email = model.Email,
+                            FullName = model.FullName,
+                            PasswordHash = _authService.HashPassword(model.Password),
+                            Role = UserRole.User,
+                            Status = UserStatus.Active,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        _context.Users.Add(user);
+                        await _context.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+
+                        // Otomatik giriş yap
+                        _authService.SetUserSession(user);
+
+                        TempData["Success"] = $"Hoş geldiniz, {model.FullName}! Üyelik kaydınız başarıyla oluşturuldu ve giriş yaptınız.";
+                        return RedirectToAction("Index", "Home");
+                    }
+                    catch
+                    {
+                        await transaction.RollbackAsync();
+                        throw;
+                    }
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("IX_Members_Email") == true || 
+                                                   ex.InnerException?.Message.Contains("IX_Users_Email") == true)
+                {
+                    ModelState.AddModelError("Email", "Bu e-posta adresi zaten kullanılmaktadır. Lütfen farklı bir e-posta girin.");
+                    return View(model);
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("IX_Users_Username") == true)
+                {
+                    ModelState.AddModelError("Email", "Bu e-posta adresi için kullanıcı adı oluşturulamadı. Lütfen farklı bir e-posta girin.");
+                    return View(model);
+                }
+                catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate key") == true)
+                {
+                    ModelState.AddModelError("Email", "Bu e-posta adresi zaten kayıtlıdır. Lütfen farklı bir e-posta girin.");
+                    return View(model);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Kayıt işlemi sırasında bir hata oluştu: {ex.Message}");
+                    return View(model);
+                }
+            }
+            return View(model);
         }
 
         public async Task<IActionResult> Index()

@@ -1,0 +1,175 @@
+@model KutuphaneOtomasyonu.Models.Member
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
+@{
+    ViewData["Title"] = "Profilim";
+    var user = ViewBag.User as KutuphaneOtomasyonu.Models.User;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                <i class="fas fa-user-circle me-2" style="color: #6366F1;"></i>
+                Profilim
+            </h1>
+            <p class="text-muted mt-2 mb-0">Hesap bilgileriniz ve istatistikleriniz</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Profil Bilgileri -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-info-circle me-2" style="color: #6366F1;"></i>
+                        Kişisel Bilgiler
+                    </h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">
+                            <i class="fas fa-user me-2"></i>
+                            Ad Soyad
+                        </dt>
+                        <dd class="col-sm-8">@Model.FullName</dd>
+                        
+                        <dt class="col-sm-4">
+                            <i class="fas fa-envelope me-2"></i>
+                            E-posta
+                        </dt>
+                        <dd class="col-sm-8">@Model.Email</dd>
+                        
+                        <dt class="col-sm-4">
+                            <i class="fas fa-phone me-2"></i>
+                            Telefon
+                        </dt>
+                        <dd class="col-sm-8">@(Model.Phone ?? "Belirtilmemiş")</dd>
+                        
+                        <dt class="col-sm-4">
+                            <i class="fas fa-calendar me-2"></i>
+                            Üyelik Tarihi
+                        </dt>
+                        <dd class="col-sm-8">@Model.JoinedAt.ToString("dd.MM.yyyy")</dd>
+                        
+                        <dt class="col-sm-4">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Durum
+                        </dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Status == KutuphaneOtomasyonu.Models.MemberStatus.Active)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Pasif</span>
+                            }
+                        </dd>
+                        
+                        @if (user != null)
+                        {
+                            <dt class="col-sm-4">
+                                <i class="fas fa-user-tag me-2"></i>
+                                Kullanıcı Adı
+                            </dt>
+                            <dd class="col-sm-8">@user.Username</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- İstatistikler -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-chart-bar me-2" style="color: #6366F1;"></i>
+                        İstatistiklerim
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="text-center p-3" style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); border-radius: 10px; color: white;">
+                                <h3 class="mb-0">@ViewBag.ActiveLoans</h3>
+                                <small>Aktif Ödünç</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border-radius: 10px; color: white;">
+                                <h3 class="mb-0">@ViewBag.OverdueLoans</h3>
+                                <small>Gecikmiş</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 10px; color: white;">
+                                <h3 class="mb-0">@ViewBag.TotalLoans</h3>
+                                <small>Toplam Ödünç</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-3" style="background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%); border-radius: 10px; color: white;">
+                                <h3 class="mb-0">@ViewBag.FavoriteBooks</h3>
+                                <small>Favori Kitap</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı İşlemler -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-bolt me-2" style="color: #6366F1;"></i>
+                        Hızlı İşlemler
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a asp-controller="Loan" asp-action="MyLoans" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 1rem;">
+                                <i class="fas fa-book-reader fa-2x d-block mb-2"></i>
+                                Ödünçlerim
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Loan" asp-action="BorrowBook" class="btn btn-outline-success w-100" style="border-radius: 10px; padding: 1rem;">
+                                <i class="fas fa-book-open fa-2x d-block mb-2"></i>
+                                Kitap Ödünç Al
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Book" asp-action="Favorites" class="btn btn-outline-danger w-100" style="border-radius: 10px; padding: 1rem;">
+                                <i class="fas fa-heart fa-2x d-block mb-2"></i>
+                                Favorilerim
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Payment" asp-action="OverdueLoans" class="btn btn-outline-warning w-100" style="border-radius: 10px; padding: 1rem;">
+                                <i class="fas fa-credit-card fa-2x d-block mb-2"></i>
+                                Ödemelerim
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+

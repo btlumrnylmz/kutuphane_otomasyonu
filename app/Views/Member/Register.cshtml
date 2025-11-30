@@ -1,0 +1,125 @@
+@model KutuphaneOtomasyonu.Models.MemberRegisterViewModel
+@{
+    ViewData["Title"] = "Üye Ol";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-lg border-0" style="border-radius: 20px; overflow: hidden;">
+                <div class="text-center py-4" style="background: linear-gradient(135deg, #4F46E5 0%, #6366F1 50%, #818CF8 100%);">
+                    <div style="width: 80px; height: 80px; background: rgba(255,255,255,0.2); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-user-plus fa-2x text-white"></i>
+                    </div>
+                    <h3 class="mb-0 text-white" style="font-family: 'Playfair Display', serif;">
+                        Üye Ol
+                    </h3>
+                    <p class="text-white-50 mb-0 mt-2">Kütüphanemize katılın, binlerce kitaba erişin</p>
+                </div>
+                <div class="card-body p-5">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <p class="text-muted mb-4 text-center" style="font-size: 1.05rem;">
+                        <i class="fas fa-gift me-2" style="color: #6366F1;"></i>
+                        Kütüphanemize üye olarak binlerce kitaba erişim sağlayabilirsiniz. 
+                        Üyelik tamamen ücretsizdir!
+                    </p>
+
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="FullName" class="form-label fw-semibold" style="color: #1E293B;">
+                                    <i class="fas fa-user me-2" style="color: #6366F1;"></i>
+                                    Ad Soyad <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="FullName" class="form-control" placeholder="Adınızı ve soyadınızı girin" style="padding: 0.75rem 1rem; border-radius: 10px;" />
+                                <span asp-validation-for="FullName" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Email" class="form-label fw-semibold" style="color: #1E293B;">
+                                    <i class="fas fa-envelope me-2" style="color: #6366F1;"></i>
+                                    E-posta Adresi <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Email" type="email" class="form-control" placeholder="ornek@email.com" style="padding: 0.75rem 1rem; border-radius: 10px;" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Phone" class="form-label fw-semibold" style="color: #1E293B;">
+                                <i class="fas fa-phone me-2" style="color: #6366F1;"></i>
+                                Telefon Numarası
+                            </label>
+                            <input asp-for="Phone" class="form-control" placeholder="+90 555 123 45 67" style="padding: 0.75rem 1rem; border-radius: 10px;" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                            <small class="form-text text-muted">Telefon numarası isteğe bağlıdır.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Password" class="form-label fw-semibold" style="color: #1E293B;">
+                                    <i class="fas fa-lock me-2" style="color: #6366F1;"></i>
+                                    Şifre <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="Password" class="form-control" placeholder="En az 6 karakter" style="padding: 0.75rem 1rem; border-radius: 10px;" />
+                                <span asp-validation-for="Password" class="text-danger"></span>
+                                <small class="form-text text-muted">Şifreniz en az 6 karakter olmalıdır.</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label fw-semibold" style="color: #1E293B;">
+                                    <i class="fas fa-lock me-2" style="color: #6366F1;"></i>
+                                    Şifre Tekrarı <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="ConfirmPassword" class="form-control" placeholder="Şifrenizi tekrar girin" style="padding: 0.75rem 1rem; border-radius: 10px;" />
+                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mb-3">
+                            <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 30px; padding: 0.875rem;">
+                                <i class="fas fa-check me-2"></i>
+                                Üye Ol ve Giriş Yap
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4" style="border-color: #E0E7FF;" />
+
+                    <div class="text-center">
+                        <p class="mb-0 text-muted">
+                            Zaten üye misiniz? 
+                            <a asp-controller="Auth" asp-action="Login" style="color: #6366F1; text-decoration: none; font-weight: 600;">
+                                Giriş yapın
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

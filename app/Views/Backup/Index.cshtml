@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Yedekleme ve Geri Yükleme";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                <i class="fas fa-database me-2" style="color: #6366F1;"></i>
+                Yedekleme ve Geri Yükleme
+            </h1>
+            <p class="text-muted mt-2 mb-0">Veritabanı yedekleme ve geri yükleme işlemleri</p>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- JSON Yedekleme -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-file-export me-2" style="color: #6366F1;"></i>
+                        JSON Yedekleme
+                    </h5>
+                    <p class="text-muted mb-4">
+                        Tüm veritabanı verilerini JSON formatında yedekler. Hızlı ve kolay geri yükleme için idealdir.
+                    </p>
+                    <form asp-action="Backup" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-primary w-100" style="border-radius: 10px; padding: 0.75rem 1.5rem;">
+                            <i class="fas fa-download me-2"></i>
+                            JSON Yedekleme İndir
+                        </button>
+                    </form>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Yedekleme dosyası otomatik olarak indirilecektir.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- SQL Server Yedekleme -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-server me-2" style="color: #6366F1;"></i>
+                        SQL Server Yedekleme (BAK)
+                    </h5>
+                    <p class="text-muted mb-4">
+                        SQL Server'ın yerel yedekleme formatı. Tam veritabanı yedeği için kullanılır.
+                    </p>
+                    <a asp-action="SqlBackup" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 0.75rem 1.5rem;">
+                        <i class="fas fa-code me-2"></i>
+                        SQL Komutunu Görüntüle
+                    </a>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        SSMS'de çalıştırılacak SQL komutunu gösterir.
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Geri Yükleme -->
+        <div class="col-md-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-4" style="color: #1E293B;">
+                        <i class="fas fa-file-import me-2" style="color: #EF4444;"></i>
+                        Geri Yükleme
+                    </h5>
+                    <div class="alert alert-warning" style="border-radius: 10px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Uyarı:</strong> Geri yükleme işlemi mevcut tüm verileri siler ve yedekten geri yükler. 
+                        İşlem öncesi mutlaka yeni bir yedek alın!
+                    </div>
+                    <a asp-action="Restore" class="btn btn-outline-danger" style="border-radius: 10px; padding: 0.75rem 1.5rem;">
+                        <i class="fas fa-undo me-2"></i>
+                        Geri Yükleme Komutları
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bilgilendirme -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px; background: linear-gradient(135deg, #F5F3FF 0%, #FAF9FF 100%);">
+                <div class="card-body p-4">
+                    <h5 class="card-title mb-3" style="color: #1E293B;">
+                        <i class="fas fa-lightbulb me-2" style="color: #6366F1;"></i>
+                        Yedekleme Önerileri
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            <strong>Düzenli Yedekleme:</strong> Haftalık veya günlük otomatik yedekleme yapın
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            <strong>Güvenli Depolama:</strong> Yedekleri farklı bir konumda saklayın (bulut, harici disk)
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            <strong>Test Edin:</strong> Yedeklerin geri yüklenebilir olduğunu düzenli olarak test edin
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            <strong>Versiyonlama:</strong> Yedek dosyalarını tarih damgası ile adlandırın
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

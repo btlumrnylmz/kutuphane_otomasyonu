@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\betul\\kütüphane otomasyonu vtys2\\app\\KutuphaneOtomasyonu.csproj": {}
+    "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\KutuphaneOtomasyonu.csproj": {}
   },
   "projects": {
-    "C:\\Users\\betul\\kütüphane otomasyonu vtys2\\app\\KutuphaneOtomasyonu.csproj": {
+    "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\KutuphaneOtomasyonu.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\betul\\kütüphane otomasyonu vtys2\\app\\KutuphaneOtomasyonu.csproj",
+        "projectUniqueName": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\KutuphaneOtomasyonu.csproj",
         "projectName": "KutuphaneOtomasyonu",
-        "projectPath": "C:\\Users\\betul\\kütüphane otomasyonu vtys2\\app\\KutuphaneOtomasyonu.csproj",
+        "projectPath": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\KutuphaneOtomasyonu.csproj",
         "packagesPath": "C:\\Users\\betul\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\betul\\kütüphane otomasyonu vtys2\\app\\obj\\",
+        "outputPath": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

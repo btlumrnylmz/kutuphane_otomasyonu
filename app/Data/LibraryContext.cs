@@ -1,5 +1,6 @@
 using System;
 using KutuphaneOtomasyonu.Models;
+using KutuphaneOtomasyonu.Controllers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -17,6 +18,9 @@ namespace KutuphaneOtomasyonu.Data
         public DbSet<Reservation> Reservations => Set<Reservation>();
         public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
         public DbSet<User> Users => Set<User>();
+        public DbSet<Payment> Payments => Set<Payment>();
+        public DbSet<ReturnRequest> ReturnRequests => Set<ReturnRequest>();
+        public DbSet<Favorite> Favorites => Set<Favorite>();
 
         public LibraryContext()
         {
@@ -66,6 +70,9 @@ namespace KutuphaneOtomasyonu.Data
             modelBuilder.Entity<Reservation>().ToTable("Reservations");
             modelBuilder.Entity<AuditLog>().ToTable("Audit_Log");
             modelBuilder.Entity<User>().ToTable("Users");
+            modelBuilder.Entity<Payment>().ToTable("Payments");
+            modelBuilder.Entity<ReturnRequest>().ToTable("ReturnRequests");
+            modelBuilder.Entity<Favorite>().ToTable("Favorites");
 
             // Book: benzersiz ISBN
             modelBuilder.Entity<Book>()
@@ -165,6 +172,25 @@ namespace KutuphaneOtomasyonu.Data
                 .HasMaxLength(20)
                 .IsRequired();
 
+            // ReturnRequest ilişkileri
+            modelBuilder.Entity<ReturnRequest>()
+                .HasOne(r => r.Loan)
+                .WithMany()
+                .HasForeignKey(r => r.LoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ReturnRequest>()
+                .HasOne(r => r.ProcessedByUser)
+                .WithMany()
+                .HasForeignKey(r => r.ProcessedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<ReturnRequest>()
+                .Property(r => r.Status)
+                .HasConversion<string>()
+                .HasMaxLength(20)
+                .IsRequired();
+
             // Reservation ilişkileri
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Member)
@@ -174,7 +200,7 @@ namespace KutuphaneOtomasyonu.Data
 
             modelBuilder.Entity<Reservation>()
                 .HasOne(r => r.Copy)
-                .WithMany() // Kopya üzerinde ayrı bir Reservations koleksiyonu tutulmuyor
+                .WithMany(c => c.Reservations) // Copy entity'sindeki Reservations navigation property'sini kullan
                 .HasForeignKey(r => r.CopyId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -197,12 +223,48 @@ namespace KutuphaneOtomasyonu.Data
                 .HasForeignKey(l => l.MemberId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Payment ilişkileri
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Loan)
+                .WithMany()
+                .HasForeignKey(p => p.LoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Payment>()
+                .Property(p => p.Amount)
+                .HasPrecision(18, 2);
+
+            // Favorite ilişkileri
+            modelBuilder.Entity<Favorite>()
+                .HasOne(f => f.User)
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Favorite>()
+                .HasOne(f => f.Book)
+                .WithMany()
+                .HasForeignKey(f => f.BookId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Favorite: Bir kullanıcı aynı kitabı iki kez favoriye ekleyemez
+            modelBuilder.Entity<Favorite>()
+                .HasIndex(f => new { f.UserId, f.BookId })
+                .IsUnique();
+
             // Tarih alanları için gerekli varsayılanlar
             modelBuilder.Entity<Loan>()
                 .Property(l => l.LoanedAt)
                 .HasDefaultValueSql("GETUTCDATE()"); // SQL Server için. PostgreSQL kullanılıyorsa NOW() tercih edilebilir.
 
             // DueAt uygulama mantığıyla atanacaktır (ödünç alırken +14 gün)
+
+            // Rapor view'ları için keyless entity'ler
+            modelBuilder.Entity<TopBookRow>().HasNoKey();
+            modelBuilder.Entity<ActiveLoanRow>().HasNoKey();
+            modelBuilder.Entity<MemberLoanCountRow>().HasNoKey();
+            modelBuilder.Entity<AuditLogRow>().HasNoKey();
+            modelBuilder.Entity<ReservationRow>().HasNoKey();
         }
     }
 }

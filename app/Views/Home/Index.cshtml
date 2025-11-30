@@ -1,27 +1,267 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
 @{
     ViewData["Title"] = "Kütüphane Otomasyonu";
+    var isLoggedIn = AuthService.IsLoggedIn();
+    var isAdmin = AuthService.IsAdmin();
+    var isDashboard = ViewBag.IsDashboard as bool? ?? false;
+    var stats = ViewBag.Stats as dynamic;
+    var member = ViewBag.Member as KutuphaneOtomasyonu.Models.Member;
 }
 
+@if (isDashboard && isLoggedIn)
+{
+    <!-- Dashboard View -->
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                    <i class="fas fa-home me-2" style="color: #6366F1;"></i>
+                    @(isAdmin ? "Yönetici Paneli" : "Hoş Geldiniz")
+                </h1>
+                @if (!isAdmin && member != null)
+                {
+                    <p class="text-muted mt-2 mb-0">Merhaba, <strong>@member.FullName</strong>! Bugün hangi kitabı okuyacaksınız?</p>
+                }
+            </div>
+        </div>
+
+        @if (isAdmin && stats != null)
+        {
+            <!-- Admin Dashboard Stats -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Toplam Kitap</h6>
+                                    <h2 class="mb-0">@stats.TotalBooks</h2>
+                                </div>
+                                <i class="fas fa-book fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Aktif Üyeler</h6>
+                                    <h2 class="mb-0">@stats.TotalMembers</h2>
+                                </div>
+                                <i class="fas fa-users fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Aktif Ödünçler</h6>
+                                    <h2 class="mb-0">@stats.ActiveLoans</h2>
+                                </div>
+                                <i class="fas fa-book-reader fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Gecikmiş</h6>
+                                    <h2 class="mb-0">@stats.OverdueLoans</h2>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (!isAdmin && stats != null)
+        {
+            <!-- User Dashboard Stats -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Aktif Ödünçlerim</h6>
+                                    <h2 class="mb-0">@stats.ActiveLoans</h2>
+                                </div>
+                                <i class="fas fa-book-reader fa-3x opacity-50"></i>
+                            </div>
+                            <a asp-controller="Loan" asp-action="MyLoans" class="btn btn-sm btn-light mt-2 w-100">
+                                <i class="fas fa-eye me-1"></i> Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Gecikmiş Kitaplar</h6>
+                                    <h2 class="mb-0">@stats.OverdueLoans</h2>
+                                </div>
+                                <i class="fas fa-exclamation-triangle fa-3x opacity-50"></i>
+                            </div>
+                            @if (stats.OverdueLoans > 0)
+                            {
+                                <a asp-controller="Payment" asp-action="OverdueLoans" class="btn btn-sm btn-light mt-2 w-100">
+                                    <i class="fas fa-credit-card me-1"></i> Ödeme Yap
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #EC4899 0%, #DB2777 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Favori Kitaplar</h6>
+                                    <h2 class="mb-0">@stats.FavoriteBooks</h2>
+                                </div>
+                                <i class="fas fa-heart fa-3x opacity-50"></i>
+                            </div>
+                            <a asp-controller="Book" asp-action="Favorites" class="btn btn-sm btn-light mt-2 w-100">
+                                <i class="fas fa-eye me-1"></i> Görüntüle
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: white; border-radius: 15px;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="text-white-50 mb-2">Müsait Kitaplar</h6>
+                                    <h2 class="mb-0">@stats.AvailableCopies</h2>
+                                </div>
+                                <i class="fas fa-book fa-3x opacity-50"></i>
+                            </div>
+                            <a asp-controller="Loan" asp-action="BorrowBook" class="btn btn-sm btn-light mt-2 w-100">
+                                <i class="fas fa-plus me-1"></i> Ödünç Al
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Quick Actions -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                    <div class="card-body p-4">
+                        <h5 class="card-title mb-4" style="color: #1E293B;">
+                            <i class="fas fa-bolt me-2" style="color: #6366F1;"></i>
+                            Hızlı İşlemler
+                        </h5>
+                        <div class="row g-3">
+                            <div class="col-md-6 col-lg-3">
+                                <a asp-controller="Book" asp-action="Index" class="btn btn-outline-primary w-100" style="border-radius: 10px; padding: 1rem;">
+                                    <i class="fas fa-book fa-2x d-block mb-2"></i>
+                                    Kitapları Görüntüle
+                                </a>
+                            </div>
+                            @if (isLoggedIn && !isAdmin)
+                            {
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Loan" asp-action="BorrowBook" class="btn btn-outline-success w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-book-open fa-2x d-block mb-2"></i>
+                                        Kitap Ödünç Al
+                                    </a>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Loan" asp-action="MyLoans" class="btn btn-outline-info w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-list fa-2x d-block mb-2"></i>
+                                        Ödünçlerim
+                                    </a>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Book" asp-action="Favorites" class="btn btn-outline-danger w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-heart fa-2x d-block mb-2"></i>
+                                        Favorilerim
+                                    </a>
+                                </div>
+                            }
+                            @if (isAdmin)
+                            {
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Loan" asp-action="Index" class="btn btn-outline-warning w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-exchange-alt fa-2x d-block mb-2"></i>
+                                        Ödünç İşlemleri
+                                    </a>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Loan" asp-action="PendingReturns" class="btn btn-outline-danger w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-clock fa-2x d-block mb-2"></i>
+                                        Bekleyen İadeler (@stats?.PendingReturns ?? 0)
+                                    </a>
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <a asp-controller="Reports" asp-action="Index" class="btn btn-outline-secondary w-100" style="border-radius: 10px; padding: 1rem;">
+                                        <i class="fas fa-chart-line fa-2x d-block mb-2"></i>
+                                        Raporlar
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Public Landing Page -->
 <!-- Hero Section with Quote -->
-<div class="hero-section bg-primary text-white py-5 mb-5">
+<div class="hero-section text-white py-5 mb-5">
     <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-8">
-                <h1 class="display-4 fw-bold mb-3">Kütüphane Otomasyonu</h1>
-                <blockquote class="blockquote mb-4">
-                    <p class="mb-0 fs-4">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-7">
+                <h1 class="display-3 fw-bold mb-4" style="font-family: 'Playfair Display', serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                    Kütüphane Otomasyonu
+                </h1>
+                <blockquote class="blockquote mb-4" style="border-left: 4px solid rgba(255,255,255,0.5); padding-left: 1.5rem;">
+                    <p class="mb-0 fs-3" style="font-style: italic; line-height: 1.6;">
                         "Kitaplar olmadan yaşayamam. Onlar benim için hava, su ve yiyecek kadar gerekli."
                     </p>
-                    <footer class="blockquote-footer text-light mt-2">
+                    <footer class="blockquote-footer text-light mt-3" style="font-size: 1.1rem; opacity: 0.9;">
                         <cite title="Source Title">Albert Einstein</cite>
                     </footer>
                 </blockquote>
-                <p class="lead">
+                <p class="lead fs-5 mb-4" style="opacity: 0.95;">
                     Bilgiye ulaşmanın en kolay yolu kitaplardır. Kütüphanemizde binlerce eser sizi bekliyor.
                 </p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a asp-controller="Member" asp-action="Register" class="btn btn-light btn-lg px-4" style="border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Hemen Üye Ol
+                    </a>
+                    <a asp-controller="Book" asp-action="Index" class="btn btn-outline-light btn-lg px-4" style="border-radius: 30px; font-weight: 600; border-width: 2px;">
+                        <i class="fas fa-book me-2"></i>
+                        Kitapları Keşfet
+                    </a>
+                </div>
             </div>
-            <div class="col-lg-4 text-center">
-                <i class="fas fa-book-open display-1 opacity-75"></i>
+            <div class="col-lg-5 text-center mt-4 mt-lg-0">
+                <div style="position: relative;">
+                    <div style="background: rgba(255,255,255,0.15); border-radius: 20px; padding: 3rem; backdrop-filter: blur(10px);">
+                        <i class="fas fa-book-open" style="font-size: 8rem; opacity: 0.95; color: #FFFFFF;"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -30,20 +270,27 @@
 <!-- Search Section -->
 <div class="container mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0">
-                <div class="card-body p-4">
-                    <h3 class="text-center mb-4">
-                        <i class="fas fa-search me-2"></i>
-                        Kitap Ara
-                    </h3>
+        <div class="col-lg-10">
+            <div class="card shadow-lg border-0" style="background: linear-gradient(135deg, #F5F3FF 0%, #FAF9FF 100%); border-radius: 20px;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="mb-2" style="font-family: 'Playfair Display', serif; color: #1E293B;">
+                            <i class="fas fa-search me-2" style="color: #6366F1;"></i>
+                            Kitap Ara
+                        </h2>
+                        <p class="text-muted">Binlerce kitap arasından aradığınızı bulun</p>
+                    </div>
                     <form asp-controller="Home" asp-action="Search" method="post">
-                        <div class="input-group input-group-lg">
-                            <input type="text" name="searchTerm" class="form-control" 
+                        <div class="input-group input-group-lg" style="box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-radius: 50px; overflow: hidden;">
+                            <span class="input-group-text bg-white border-0" style="padding-left: 1.5rem;">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" name="searchTerm" class="form-control border-0" 
                                    placeholder="Kitap adı, yazar, kategori veya ISBN ile arayın..." 
-                                   value="@ViewBag.SearchTerm" required>
-                            <button class="btn btn-primary" type="submit">
-                                <i class="fas fa-search me-1"></i>
+                                   value="@ViewBag.SearchTerm" required
+                                   style="font-size: 1.1rem; padding: 1rem;">
+                            <button class="btn btn-primary border-0" type="submit" style="padding: 1rem 2rem; border-radius: 0 50px 50px 0;">
+                                <i class="fas fa-search me-2"></i>
                                 Ara
                             </button>
                         </div>
@@ -61,7 +308,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header bg-info text-white">
+                    <div class="card-header" style="background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%); color: white;">
                         <h4 class="mb-0">
                             <i class="fas fa-list me-2"></i>
                             Arama Sonuçları (@ViewBag.SearchResults.Count sonuç)
@@ -109,7 +356,12 @@
 
 <!-- Carousel Section -->
 <div class="container mb-5">
-    <h2 class="text-center mb-4">Neden Okumalısınız?</h2>
+    <div class="text-center mb-5">
+        <h2 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin-bottom: 1rem;">
+            Neden Okumalısınız?
+        </h2>
+        <p class="text-muted fs-5">Okumanın hayatınıza kattığı değerler</p>
+    </div>
     <div id="readingCarousel" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-indicators">
             <button type="button" data-bs-target="#readingCarousel" data-bs-slide-to="0" class="active"></button>
@@ -165,31 +417,43 @@
 
 <!-- Features Section -->
 <div class="container mb-5">
-    <div class="row">
+    <div class="text-center mb-5">
+        <h2 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem;">
+            Neden Bizi Seçmelisiniz?
+        </h2>
+        <p class="text-muted fs-5">Modern kütüphane deneyimi için ihtiyacınız olan her şey</p>
+    </div>
+    <div class="row g-4">
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-search fa-3x text-primary mb-3"></i>
-                    <h5 class="card-title">Kolay Arama</h5>
-                    <p class="card-text">İstediğiniz kitabı ISBN, yazar veya başlık ile kolayca bulun.</p>
+            <div class="card h-100 border-0 shadow-sm" style="background: white; transition: all 0.3s ease;">
+                <div class="card-body text-center p-4">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1 0%, #818CF8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <i class="fas fa-search fa-2x text-white"></i>
+                    </div>
+                    <h5 class="card-title" style="font-family: 'Playfair Display', serif; color: #1E293B; margin-bottom: 1rem;">Kolay Arama</h5>
+                    <p class="card-text text-muted">İstediğiniz kitabı ISBN, yazar veya başlık ile kolayca bulun. Gelişmiş arama özellikleri ile aradığınızı hemen bulun.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x text-success mb-3"></i>
-                    <h5 class="card-title">Hızlı Ödünç</h5>
-                    <p class="card-text">Online sistem ile kitap ödünç alma işlemlerinizi hızlıca tamamlayın.</p>
+            <div class="card h-100 border-0 shadow-sm" style="background: white; transition: all 0.3s ease;">
+                <div class="card-body text-center p-4">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1 0%, #818CF8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <i class="fas fa-clock fa-2x text-white"></i>
+                    </div>
+                    <h5 class="card-title" style="font-family: 'Playfair Display', serif; color: #1E293B; margin-bottom: 1rem;">Hızlı Ödünç</h5>
+                    <p class="card-text text-muted">Online sistem ile kitap ödünç alma işlemlerinizi hızlıca tamamlayın. Sadece birkaç tıklama ile kitabınız hazır.</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-4">
-            <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-bell fa-3x text-warning mb-3"></i>
-                    <h5 class="card-title">Rezervasyon</h5>
-                    <p class="card-text">İstediğiniz kitap mevcut değilse rezervasyon yapın, müsait olunca haber verelim.</p>
+            <div class="card h-100 border-0 shadow-sm" style="background: white; transition: all 0.3s ease;">
+                <div class="card-body text-center p-4">
+                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #6366F1 0%, #818CF8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                        <i class="fas fa-bell fa-2x text-white"></i>
+                    </div>
+                    <h5 class="card-title" style="font-family: 'Playfair Display', serif; color: #1E293B; margin-bottom: 1rem;">Rezervasyon</h5>
+                    <p class="card-text text-muted">İstediğiniz kitap mevcut değilse rezervasyon yapın, müsait olunca size haber verelim.</p>
                 </div>
             </div>
         </div>
@@ -197,15 +461,28 @@
 </div>
 
 <!-- Call to Action -->
-<div class="bg-light py-5">
+<div style="background: linear-gradient(135deg, #F5F3FF 0%, #FAF9FF 100%); padding: 4rem 0; margin-top: 4rem;">
     <div class="container text-center">
-        <h2 class="mb-3">Hemen Başlayın!</h2>
-        <p class="lead mb-4">Kütüphanemizdeki binlerce eserden yararlanmaya başlamak için üye olun.</p>
-        <a asp-controller="Member" asp-action="Create" class="btn btn-primary btn-lg me-3">Üye Ol</a>
-        <a asp-controller="Book" asp-action="Index" class="btn btn-outline-primary btn-lg">Kitapları Görüntüle</a>
+        <h2 class="mb-3" style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem;">
+            Hemen Başlayın!
+        </h2>
+        <p class="lead mb-4 fs-5" style="color: #6366F1; max-width: 600px; margin: 0 auto; font-weight: 500;">
+            Kütüphanemizdeki binlerce eserden yararlanmaya başlamak için üye olun. Üyelik tamamen ücretsizdir!
+        </p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
+            <a asp-controller="Member" asp-action="Register" class="btn btn-primary btn-lg px-5" style="border-radius: 30px; font-weight: 600; padding: 1rem 2.5rem !important;">
+                <i class="fas fa-user-plus me-2"></i>
+                Üye Ol
+            </a>
+            <a asp-controller="Book" asp-action="Index" class="btn btn-outline-primary btn-lg px-5" style="border-radius: 30px; font-weight: 600; padding: 1rem 2.5rem !important; border-width: 2px;">
+                <i class="fas fa-book me-2"></i>
+                Kitapları Görüntüle
+            </a>
+        </div>
     </div>
 </div>
 
+}
 @section Scripts {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 }

@@ -1,0 +1,147 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
+@{
+    ViewData["Title"] = "Ödeme Yap";
+    var loan = ViewBag.Loan as KutuphaneOtomasyonu.Models.Loan;
+    var delayDays = (int)ViewBag.DelayDays;
+    var totalPenalty = (decimal)ViewBag.TotalPenalty;
+    var paidAmount = (decimal)ViewBag.PaidAmount;
+    var remainingAmount = (decimal)ViewBag.RemainingAmount;
+    var dailyPenaltyRate = (decimal)ViewBag.DailyPenaltyRate;
+    var isAdmin = AuthService.IsAdmin();
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-money-bill-wave me-2"></i>
+                        @if (isAdmin)
+                        {
+                            <text>Ödeme Kaydet</text>
+                        }
+                        else
+                        {
+                            <text>Ödeme Yap</text>
+                        }
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Ödünç Bilgileri</h5>
+                            <hr />
+                            <p><strong>Üye:</strong> @loan?.Member?.FullName</p>
+                            <p><strong>Kitap:</strong> @loan?.Copy?.Book?.Title</p>
+                            <p><strong>Vade Tarihi:</strong> @loan?.DueAt.ToString("dd.MM.yyyy HH:mm")</p>
+                            <p><strong>Gecikme:</strong> <span class="badge bg-danger">@delayDays gün</span></p>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Borç Detayları</h5>
+                            <hr />
+                            <div class="row">
+                                <div class="col-6">
+                                    <p><strong>Günlük Ücret:</strong></p>
+                                    <p><strong>Toplam Gecikme:</strong></p>
+                                    <p><strong>Toplam Borç:</strong></p>
+                                    <p><strong>Ödenen:</strong></p>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <p>@dailyPenaltyRate.ToString("F2") TL</p>
+                                    <p>@delayDays gün</p>
+                                    <p><strong>@totalPenalty.ToString("F2") TL</strong></p>
+                                    <p class="text-success">@paidAmount.ToString("F2") TL</p>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="row">
+                                <div class="col-6">
+                                    <h5><strong>Kalan Borç:</strong></h5>
+                                </div>
+                                <div class="col-6 text-end">
+                                    <h4 class="text-danger"><strong>@remainingAmount.ToString("F2") TL</strong></h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!isAdmin)
+                    {
+                        <form asp-action="Pay" method="post">
+                            <input type="hidden" name="loanId" value="@loan?.LoanId" />
+                            
+                            <div class="mb-3">
+                                <label for="amount" class="form-label">
+                                    <i class="fas fa-lira-sign me-1"></i>
+                                    Ödeme Tutarı (TL) <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" 
+                                       id="amount" 
+                                       name="amount" 
+                                       class="form-control" 
+                                       step="0.01" 
+                                       min="0.01" 
+                                       max="@remainingAmount" 
+                                       value="@remainingAmount" 
+                                       required />
+                                <small class="form-text text-muted">
+                                    Maksimum ödeme tutarı: <strong>@remainingAmount.ToString("F2") TL</strong>
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="description" class="form-label">
+                                    <i class="fas fa-comment me-1"></i>
+                                    Açıklama (İsteğe Bağlı)
+                                </label>
+                                <textarea id="description" 
+                                          name="description" 
+                                          class="form-control" 
+                                          rows="3" 
+                                          placeholder="Ödeme ile ilgili notlarınız..."></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success btn-lg">
+                                    <i class="fas fa-check me-2"></i>
+                                    Ödemeyi Tamamla
+                                </button>
+                                <a asp-action="OverdueLoans" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>
+                                    Geri Dön
+                                </a>
+                            </div>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Bilgi:</strong> Yöneticiler ödeme kaydedemez. Bu sayfayı sadece bilgi amaçlı görüntüleyebilirsiniz.
+                        </div>
+                        <div class="d-grid gap-2">
+                            <a asp-action="OverdueLoans" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Geri Dön
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

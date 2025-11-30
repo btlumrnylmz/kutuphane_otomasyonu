@@ -22,6 +22,86 @@ namespace KutuphaneOtomasyonu.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("KutuphaneOtomasyonu.Controllers.ActiveLoanRow", b =>
+                {
+                    b.Property<string>("book_title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("delay_days")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("due_at")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("member_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("ActiveLoanRow");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Controllers.AuditLogRow", b =>
+                {
+                    b.Property<string>("action")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("action_time")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("loan_id")
+                        .HasColumnType("int");
+
+                    b.ToTable("AuditLogRow");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Controllers.MemberLoanCountRow", b =>
+                {
+                    b.Property<string>("member_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("total_loans")
+                        .HasColumnType("int");
+
+                    b.ToTable("MemberLoanCountRow");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Controllers.ReservationRow", b =>
+                {
+                    b.Property<string>("book_title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("member_name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("notified")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("reservation_id")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("reserved_at")
+                        .HasColumnType("datetime2");
+
+                    b.ToTable("ReservationRow");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Controllers.TopBookRow", b =>
+                {
+                    b.Property<int>("borrow_count")
+                        .HasColumnType("int");
+
+                    b.Property<string>("title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("TopBookRow");
+                });
+
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.AuditLog", b =>
                 {
                     b.Property<int>("AuditId")
@@ -63,6 +143,10 @@ namespace KutuphaneOtomasyonu.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CoverImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -132,6 +216,33 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.HasIndex("BookId");
 
                     b.ToTable("Copies", (string)null);
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.Favorite", b =>
+                {
+                    b.Property<int>("FavoriteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FavoriteId"));
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("BookId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FavoriteId");
+
+                    b.HasIndex("BookId");
+
+                    b.HasIndex("UserId", "BookId")
+                        .IsUnique();
+
+                    b.ToTable("Favorites", (string)null);
                 });
 
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Loan", b =>
@@ -206,6 +317,35 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.ToTable("Members", (string)null);
                 });
 
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.Payment", b =>
+                {
+                    b.Property<int>("PaymentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PaymentId"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("LoanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("PaymentId");
+
+                    b.HasIndex("LoanId");
+
+                    b.ToTable("Payments", (string)null);
+                });
+
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Reservation", b =>
                 {
                     b.Property<int>("ReservationId")
@@ -238,6 +378,44 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.HasIndex("MemberId");
 
                     b.ToTable("Reservations", (string)null);
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.ReturnRequest", b =>
+                {
+                    b.Property<int>("ReturnRequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReturnRequestId"));
+
+                    b.Property<int>("LoanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProcessedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("ReturnRequestId");
+
+                    b.HasIndex("LoanId");
+
+                    b.HasIndex("ProcessedByUserId");
+
+                    b.ToTable("ReturnRequests", (string)null);
                 });
 
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.User", b =>
@@ -306,6 +484,25 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.Navigation("Book");
                 });
 
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.Favorite", b =>
+                {
+                    b.HasOne("KutuphaneOtomasyonu.Models.Book", "Book")
+                        .WithMany()
+                        .HasForeignKey("BookId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("KutuphaneOtomasyonu.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Book");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Loan", b =>
                 {
                     b.HasOne("KutuphaneOtomasyonu.Models.Copy", "Copy")
@@ -323,6 +520,17 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.Navigation("Copy");
 
                     b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.Payment", b =>
+                {
+                    b.HasOne("KutuphaneOtomasyonu.Models.Loan", "Loan")
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Loan");
                 });
 
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Reservation", b =>
@@ -346,6 +554,24 @@ namespace KutuphaneOtomasyonu.Migrations
                     b.Navigation("Copy");
 
                     b.Navigation("Member");
+                });
+
+            modelBuilder.Entity("KutuphaneOtomasyonu.Models.ReturnRequest", b =>
+                {
+                    b.HasOne("KutuphaneOtomasyonu.Models.Loan", "Loan")
+                        .WithMany()
+                        .HasForeignKey("LoanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("KutuphaneOtomasyonu.Models.User", "ProcessedByUser")
+                        .WithMany()
+                        .HasForeignKey("ProcessedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Loan");
+
+                    b.Navigation("ProcessedByUser");
                 });
 
             modelBuilder.Entity("KutuphaneOtomasyonu.Models.Book", b =>

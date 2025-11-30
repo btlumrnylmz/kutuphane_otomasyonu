@@ -27,6 +27,15 @@ namespace KutuphaneOtomasyonu.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
+            // Diğer sayfalardan gelen TempData mesajlarını temizle
+            // Sadece logout mesajını koru
+            var logoutMessage = TempData["LogoutMessage"];
+            TempData.Clear();
+            if (logoutMessage != null)
+            {
+                TempData["Success"] = logoutMessage;
+            }
+
             return View();
         }
 
@@ -70,7 +79,7 @@ namespace KutuphaneOtomasyonu.Controllers
         public IActionResult Logout()
         {
             _authService.Logout();
-            TempData["Success"] = "Başarıyla çıkış yaptınız.";
+            TempData["LogoutMessage"] = "Başarıyla çıkış yaptınız.";
             return RedirectToAction("Login");
         }
 

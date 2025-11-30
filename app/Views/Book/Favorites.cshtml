@@ -1,0 +1,132 @@
+@using KutuphaneOtomasyonu.Services
+@inject AuthService AuthService
+@model IEnumerable<KutuphaneOtomasyonu.Models.Favorite>
+@{
+    ViewData["Title"] = "Favori Kitaplarım";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                        <i class="fas fa-heart me-2" style="color: #EF4444;"></i>
+                        Favori Kitaplarım
+                    </h1>
+                    <p class="text-muted mt-2 mb-0">Beğendiğiniz kitapları burada bulabilirsiniz</p>
+                </div>
+                <a class="btn btn-outline-primary" asp-action="Index" style="border-radius: 30px; padding: 0.75rem 2rem;">
+                    <i class="fas fa-book me-2"></i>
+                    Tüm Kitaplar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var favorite in Model)
+            {
+                var book = favorite.Book;
+                if (book == null) continue;
+
+                <div class="col-md-6 col-lg-4 col-xl-3">
+                    <div class="card h-100 border-0 shadow-sm" style="transition: all 0.3s ease;">
+                        <div class="card-body d-flex flex-column">
+                            <div class="text-center mb-3" style="height: 200px; border-radius: 10px; overflow: hidden; background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%); display: flex; align-items: center; justify-content: center; position: relative;">
+                                @if (!string.IsNullOrEmpty(book.CoverImageUrl))
+                                {
+                                    <img src="@book.CoverImageUrl" alt="@book.Title" style="width: 100%; height: 100%; object-fit: cover;" />
+                                }
+                                else
+                                {
+                                    <i class="fas fa-book fa-4x" style="color: #EF4444; opacity: 0.8;"></i>
+                                }
+                                <div style="position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                    <i class="fas fa-heart" style="color: #EF4444;"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title mb-2" style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 1.2rem; min-height: 3rem;">
+                                @book.Title
+                            </h5>
+                            <div class="mb-3 flex-grow-1">
+                                <p class="mb-2" style="color: #6366F1;">
+                                    <i class="fas fa-user me-2"></i>
+                                    <strong>Yazar:</strong> @book.Author
+                                </p>
+                                <p class="mb-2" style="color: #6366F1;">
+                                    <i class="fas fa-tag me-2"></i>
+                                    <strong>Kategori:</strong> @book.Category
+                                </p>
+                                <p class="mb-2" style="color: #6366F1;">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    <strong>Yıl:</strong> @book.PublishYear
+                                </p>
+                                @if (book.PageCount.HasValue)
+                                {
+                                    <p class="mb-2" style="color: #6366F1;">
+                                        <i class="fas fa-file-alt me-2"></i>
+                                        <strong>Sayfa:</strong> @book.PageCount
+                                    </p>
+                                }
+                                <p class="mb-0 small text-muted">
+                                    <i class="fas fa-clock me-2"></i>
+                                    Eklenme: @favorite.AddedAt.ToString("dd.MM.yyyy")
+                                </p>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <a class="btn btn-outline-primary btn-sm" asp-action="Details" asp-route-id="@book.BookId" style="border-radius: 20px;">
+                                    <i class="fas fa-eye me-1"></i>
+                                    Detaylar
+                                </a>
+                                <form asp-action="RemoveFromFavorites" method="post" class="d-inline">
+                                    <input type="hidden" name="bookId" value="@book.BookId" />
+                                    <button type="submit" class="btn btn-outline-danger btn-sm w-100" style="border-radius: 20px;">
+                                        <i class="fas fa-heart-broken me-1"></i>
+                                        Favorilerden Çıkar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-heart fa-4x text-muted mb-3" style="opacity: 0.3; color: #EF4444;"></i>
+                <h5 class="text-muted">Henüz favori kitabınız yok</h5>
+                <p class="text-muted">Beğendiğiniz kitapları favorilerinize ekleyerek kolayca erişebilirsiniz.</p>
+                <a class="btn btn-primary mt-3" asp-action="Index" style="border-radius: 30px;">
+                    <i class="fas fa-book me-2"></i>
+                    Kitapları Keşfet
+                </a>
+            </div>
+        </div>
+    }
+</div>
+

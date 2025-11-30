@@ -45,15 +45,15 @@ BEGIN
     -- Türkçe Açıklama: Yeni ödünç (INSERT) durumunda BORROW, iade edilen (UPDATE ve ReturnedAt dolu) satırlar için RETURN kaydı oluştur.
 
     -- Insert edilen kayıtlar BORROW olarak loglansın
-    INSERT INTO dbo.Audit_Log(LoanId, Action)
-    SELECT i.LoanId, N'BORROW'
+    INSERT INTO dbo.Audit_Log(LoanId, Action, ActionTime)
+    SELECT i.LoanId, N'BORROW', SYSUTCDATETIME()
     FROM inserted i
     LEFT JOIN deleted d ON d.LoanId = i.LoanId
     WHERE d.LoanId IS NULL; -- yalnızca insert
 
     -- Update ile iade edilenler RETURN olarak loglansın
-    INSERT INTO dbo.Audit_Log(LoanId, Action)
-    SELECT i.LoanId, N'RETURN'
+    INSERT INTO dbo.Audit_Log(LoanId, Action, ActionTime)
+    SELECT i.LoanId, N'RETURN', SYSUTCDATETIME()
     FROM inserted i
     INNER JOIN deleted d ON d.LoanId = i.LoanId
     WHERE d.ReturnedAt IS NULL AND i.ReturnedAt IS NOT NULL;

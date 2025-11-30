@@ -1,0 +1,220 @@
+@using KutuphaneOtomasyonu.Models
+@{
+    ViewData["Title"] = "Ödünçlerim";
+    var loans = ViewBag.Loans as List<Loan> ?? new List<Loan>();
+    var returnRequests = ViewBag.ReturnRequests as List<ReturnRequest> ?? new List<ReturnRequest>();
+    var member = ViewBag.Member as Member;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-book me-2"></i>
+                        Ödünçlerim
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <h4 class="mb-3">Aktif Ödünçlerim</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Kitap</th>
+                                    <th>Ödünç Tarihi</th>
+                                    <th>Vade Tarihi</th>
+                                    <th>Durum</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var activeLoans = loans.Where(l => l.ReturnedAt == null).ToList();
+                                }
+                                @foreach (var loan in activeLoans)
+                                {
+                                    var isOverdue = DateTime.UtcNow > loan.DueAt;
+                                    var hasPendingRequest = returnRequests.Any(r => r.LoanId == loan.LoanId && r.Status == KutuphaneOtomasyonu.Models.ReturnRequestStatus.Pending);
+                                    
+                                    <tr>
+                                        <td>
+                                            <strong>@loan.Copy?.Book?.Title</strong><br>
+                                            <small class="text-muted">@loan.Copy?.ShelfLocation</small>
+                                        </td>
+                                        <td>@loan.LoanedAt.ToString("dd.MM.yyyy")</td>
+                                        <td>
+                                            @if (isOverdue)
+                                            {
+                                                <span class="text-danger"><strong>@loan.DueAt.ToString("dd.MM.yyyy")</strong></span>
+                                            }
+                                            else
+                                            {
+                                                @loan.DueAt.ToString("dd.MM.yyyy")
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (isOverdue)
+                                            {
+                                                var daysLate = (DateTime.UtcNow - loan.DueAt).Days;
+                                                <span class="badge bg-danger">@daysLate gün gecikmiş</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (hasPendingRequest)
+                                            {
+                                                <span class="badge bg-warning text-dark">İade Talebi Bekleniyor</span>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="RequestReturn" method="post" class="d-inline">
+                                                    <input type="hidden" name="loanId" value="@loan.LoanId" />
+                                                    <button type="submit" class="btn btn-sm btn-primary">
+                                                        <i class="fas fa-undo me-1"></i>
+                                                        İade Talebi Oluştur
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!activeLoans.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Aktif ödünç bulunmamaktadır.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <h4 class="mb-3">İade Taleplerim</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Kitap</th>
+                                    <th>Talep Tarihi</th>
+                                    <th>Durum</th>
+                                    <th>İşlem Tarihi</th>
+                                    <th>Not</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var request in returnRequests)
+                                {
+                                    <tr>
+                                        <td><strong>@request.Loan?.Copy?.Book?.Title</strong></td>
+                                        <td>@request.RequestedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                        <td>
+                                            @if (request.Status == KutuphaneOtomasyonu.Models.ReturnRequestStatus.Pending)
+                                            {
+                                                <span class="badge bg-warning text-dark">Beklemede</span>
+                                            }
+                                            else if (request.Status == KutuphaneOtomasyonu.Models.ReturnRequestStatus.Approved)
+                                            {
+                                                <span class="badge bg-success">Onaylandı</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Reddedildi</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (request.ProcessedAt.HasValue)
+                                            {
+                                                @request.ProcessedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(request.RejectionReason))
+                                            {
+                                                <small class="text-danger">@request.RejectionReason</small>
+                                            }
+                                            else if (request.Status == KutuphaneOtomasyonu.Models.ReturnRequestStatus.Approved)
+                                            {
+                                                <small class="text-success">İade işlemi tamamlandı</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!returnRequests.Any())
+                                {
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">İade talebi bulunmamaktadır.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <hr class="my-4" />
+
+                    <h4 class="mb-3">Geçmiş Ödünçlerim</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Kitap</th>
+                                    <th>Ödünç Tarihi</th>
+                                    <th>İade Tarihi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    var pastLoans = loans.Where(l => l.ReturnedAt != null).ToList();
+                                }
+                                @foreach (var loan in pastLoans)
+                                {
+                                    <tr>
+                                        <td><strong>@loan.Copy?.Book?.Title</strong></td>
+                                        <td>@loan.LoanedAt.ToString("dd.MM.yyyy")</td>
+                                        <td>@loan.ReturnedAt.Value.ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                }
+                                @if (!pastLoans.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Geçmiş ödünç bulunmamaktadır.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

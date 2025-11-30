@@ -1,0 +1,78 @@
+@{
+    ViewData["Title"] = "SQL Server Yedekleme";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                <i class="fas fa-server me-2" style="color: #6366F1;"></i>
+                SQL Server Yedekleme Komutu
+            </h1>
+            <p class="text-muted mt-2 mb-0">SQL Server Management Studio'da çalıştırılacak yedekleme komutu</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+        <div class="card-body p-4">
+            <div class="alert alert-info" style="border-radius: 10px;">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Kullanım:</strong> Aşağıdaki SQL komutunu SQL Server Management Studio'da çalıştırın.
+                Yedek dosyası şu konuma kaydedilecektir: <code>@ViewBag.BackupPath</code>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">
+                    <strong>SQL Yedekleme Komutu:</strong>
+                </label>
+                <textarea class="form-control" rows="15" readonly style="font-family: 'Courier New', monospace; font-size: 0.9rem;">@ViewBag.SqlCommand</textarea>
+                <button class="btn btn-sm btn-outline-secondary mt-2" onclick="copyToClipboard()">
+                    <i class="fas fa-copy me-1"></i>
+                    Kopyala
+                </button>
+            </div>
+
+            <div class="alert alert-warning" style="border-radius: 10px;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Not:</strong> Yedek dosyasının kaydedileceği klasörün (<code>C:\Backups\</code>) mevcut olduğundan emin olun.
+                Yoksa önce klasörü oluşturun.
+            </div>
+
+            <div class="d-flex gap-2">
+                <a asp-action="Index" class="btn btn-secondary" style="border-radius: 10px;">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Geri Dön
+                </a>
+                <a asp-action="Restore" class="btn btn-outline-primary" style="border-radius: 10px;">
+                    <i class="fas fa-undo me-1"></i>
+                    Geri Yükleme Komutları
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyToClipboard() {
+    const textarea = document.querySelector('textarea');
+    textarea.select();
+    document.execCommand('copy');
+    
+    // Kullanıcıya bildirim göster
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-check me-1"></i> Kopyalandı!';
+    btn.classList.add('btn-success');
+    btn.classList.remove('btn-outline-secondary');
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.classList.remove('btn-success');
+        btn.classList.add('btn-outline-secondary');
+    }, 2000);
+}
+</script>
+
+
+
+

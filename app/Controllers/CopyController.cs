@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KutuphaneOtomasyonu.Data;
 using KutuphaneOtomasyonu.Models;
+using KutuphaneOtomasyonu.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -9,25 +10,51 @@ using Microsoft.EntityFrameworkCore;
 namespace KutuphaneOtomasyonu.Controllers
 {
     /// <summary>
-    /// Kopya CRUD işlemlerini yöneten controller.
+    /// Kopya CRUD işlemlerini yöneten controller. Sadece yöneticiler için.
     /// </summary>
     public class CopyController : Controller
     {
         private readonly LibraryContext _context;
+        private readonly AuthService _authService;
 
-        public CopyController(LibraryContext context)
+        public CopyController(LibraryContext context, AuthService authService)
         {
             _context = context;
+            _authService = authService;
+        }
+
+        /// <summary>
+        /// Yönetici yetkisi kontrolü yapar.
+        /// </summary>
+        private IActionResult CheckAdminAccess()
+        {
+            if (!_authService.IsLoggedIn())
+            {
+                TempData["Error"] = "Bu sayfaya erişmek için giriş yapmalısınız.";
+                return RedirectToAction("Login", "Auth");
+            }
+
+            if (!_authService.IsAdmin())
+            {
+                return RedirectToAction("AccessDenied", "Auth");
+            }
+            return null;
         }
 
         public async Task<IActionResult> Index()
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             var copies = await _context.Copies.Include(c => c.Book).AsNoTracking().ToListAsync();
             return View(copies);
         }
 
         public async Task<IActionResult> Details(int? id)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             if (id == null) return NotFound();
             var copy = await _context.Copies
                 .Include(c => c.Book)
@@ -38,6 +65,9 @@ namespace KutuphaneOtomasyonu.Controllers
 
         public IActionResult Create()
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             ViewBag.BookId = new SelectList(_context.Books.AsNoTracking().ToList(), "BookId", "Title");
             return View();
         }
@@ -46,6 +76,9 @@ namespace KutuphaneOtomasyonu.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CopyId,BookId,ShelfLocation,Status")] Copy copy)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             if (ModelState.IsValid)
             {
                 _context.Add(copy);
@@ -59,6 +92,9 @@ namespace KutuphaneOtomasyonu.Controllers
 
         public async Task<IActionResult> Edit(int? id)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             if (id == null) return NotFound();
             var copy = await _context.Copies.FindAsync(id);
             if (copy == null) return NotFound();
@@ -70,6 +106,9 @@ namespace KutuphaneOtomasyonu.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CopyId,BookId,ShelfLocation,Status")] Copy copy)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             if (id != copy.CopyId) return NotFound();
             if (!ModelState.IsValid)
             {
@@ -85,6 +124,9 @@ namespace KutuphaneOtomasyonu.Controllers
 
         public async Task<IActionResult> Delete(int? id)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             if (id == null) return NotFound();
             var copy = await _context.Copies.Include(c => c.Book).AsNoTracking().FirstOrDefaultAsync(m => m.CopyId == id);
             if (copy == null) return NotFound();
@@ -95,6 +137,9 @@ namespace KutuphaneOtomasyonu.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
+            var adminCheck = CheckAdminAccess();
+            if (adminCheck != null) return adminCheck;
+
             var copy = await _context.Copies.FindAsync(id);
             if (copy != null)
             {

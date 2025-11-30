@@ -28,12 +28,27 @@ namespace KutuphaneOtomasyonu.Services
         /// <returns>Giriş başarılı ise kullanıcı bilgileri, değilse null</returns>
         public async Task<User?> LoginAsync(string usernameOrEmail, string password)
         {
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => 
-                    (u.Username == usernameOrEmail || u.Email == usernameOrEmail) && 
-                    u.Status == UserStatus.Active);
+            if (string.IsNullOrWhiteSpace(usernameOrEmail) || string.IsNullOrWhiteSpace(password))
+                return null;
 
-            if (user == null || !VerifyPassword(password, user.PasswordHash))
+            // Case-insensitive karşılaştırma için normalize et
+            var normalizedInput = usernameOrEmail.Trim().ToLowerInvariant();
+
+            // Tüm aktif kullanıcıları çek ve memory'de case-insensitive karşılaştır
+            // Bu yaklaşım EF Core'un ToLower() sorunlarını önler
+            var activeUsers = await _context.Users
+                .Where(u => u.Status == UserStatus.Active)
+                .ToListAsync();
+
+            var user = activeUsers.FirstOrDefault(u =>
+                u.Username.Trim().ToLowerInvariant() == normalizedInput ||
+                u.Email.Trim().ToLowerInvariant() == normalizedInput);
+
+            if (user == null)
+                return null;
+
+            // Şifre doğrulaması
+            if (!VerifyPassword(password, user.PasswordHash))
                 return null;
 
             // Son giriş tarihini güncelle

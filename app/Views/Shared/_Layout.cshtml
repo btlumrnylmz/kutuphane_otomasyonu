@@ -7,68 +7,825 @@
     var isAdmin = AuthService.IsAdmin();
 }
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@title</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --primary-color: #6366F1;
+            --primary-dark: #4F46E5;
+            --primary-light: #818CF8;
+            --secondary-color: #A78BFA;
+            --accent-color: #F5F3FF;
+            --accent-light: #FAF9FF;
+            --dark: #1E293B;
+            --dark-light: #334155;
+            --text-dark: #0F172A;
+            --text-muted: #64748B;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --info: #3B82F6;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-dark);
+            background: linear-gradient(180deg, #FAF9FF 0%, #FFFFFF 100%);
+            line-height: 1.6;
+            font-weight: 400;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 50%, var(--primary-light) 100%) !important;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+            padding: 1rem 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .navbar-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #FFFFFF !important;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.95) !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 0.2rem;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(255,255,255,0.2);
+            color: #FFFFFF !important;
+            transform: translateY(-2px);
+        }
+        
+        .card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(99, 102, 241, 0.15);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.7rem 1.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            color: white;
+        }
+        
+        .btn-outline-primary {
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            border-radius: 10px;
+            padding: 0.7rem 1.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+        
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #D97706 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #DC2626 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--text-muted) 0%, var(--dark-light) 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+        }
+        
+        footer {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-light) 100%) !important;
+            margin-top: 4rem;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .hero-section {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 50%, var(--secondary-color) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.2;
+        }
+        
+        .hero-section > * {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .badge {
+            border-radius: 8px;
+            padding: 0.4rem 0.9rem;
+            font-weight: 600;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #D97706 100%) !important;
+        }
+        
+        .table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .table thead {
+            background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);
+            color: white;
+        }
+        
+        .table thead th {
+            border: none;
+            font-weight: 600;
+            padding: 1rem;
+        }
+        
+        .table tbody tr {
+            transition: all 0.2s ease;
+        }
+        
+        .table tbody tr:hover {
+            background-color: var(--accent-color);
+            transform: scale(1.01);
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            border-color: #E2E8F0;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #E2E8F0;
+            padding: 0.75rem 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+        
+        /* Select2 Styling */
+        .select2-container {
+            width: 100% !important;
+        }
+        
+        .select2-container--bootstrap-5 .select2-selection {
+            border-radius: 10px;
+            border: 2px solid #E2E8F0;
+            padding: 0.5rem 1.2rem;
+            min-height: 48px;
+            transition: all 0.3s ease;
+        }
+        
+        .select2-container--bootstrap-5.select2-container--focus .select2-selection,
+        .select2-container--bootstrap-5.select2-container--open .select2-selection {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25) !important;
+        }
+        
+        .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+            padding-left: 0;
+            padding-right: 20px;
+            line-height: 1.5;
+        }
+        
+        .select2-container--bootstrap-5 .select2-dropdown {
+            border-radius: 10px;
+            border: 2px solid #E2E8F0;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+        }
+        
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field {
+            border-radius: 8px;
+            border: 2px solid #E2E8F0;
+            padding: 0.5rem 1rem;
+        }
+        
+        .select2-container--bootstrap-5 .select2-search--dropdown .select2-search__field:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        }
+        
+        .select2-results__option {
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+        }
+        
+        .select2-results__option--highlighted {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.04) 100%) !important;
+            color: #6366F1 !important;
+        }
+        
+        .select2-container--bootstrap-5 .select2-selection__arrow {
+            right: 12px;
+        }
+        
+        .select2-container--bootstrap-5 .select2-selection__arrow b {
+            border-color: var(--primary-color) transparent transparent transparent;
+            border-width: 6px 6px 0 6px;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .alert-success {
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            color: #065F46;
+        }
+        
+        .alert-danger {
+            background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%);
+            color: #991B1B;
+        }
+        
+        .alert-warning {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+            color: #92400E;
+        }
+        
+        .alert-info {
+            background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+            color: #1E40AF;
+        }
+        
+        .dropdown-menu {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.15);
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item:hover {
+            background: var(--accent-color);
+            border-radius: 8px;
+        }
+        
+        main {
+            min-height: calc(100vh - 200px);
+            padding: 2rem 0;
+        }
+        
+        .container-fluid {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .text-primary {
+            color: var(--primary-color) !important;
+        }
+        
+        .bg-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
+        }
+        
+        .bg-light {
+            background: var(--accent-light) !important;
+        }
+        
+        /* Apple-style Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -320px;
+            width: 320px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(40px) saturate(180%);
+            -webkit-backdrop-filter: blur(40px) saturate(180%);
+            box-shadow: 2px 0 40px rgba(0, 0, 0, 0.1);
+            transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1050;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border-right: 1px solid rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar.active {
+            left: 0;
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1049;
+        }
+        
+        .sidebar-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-header h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1E293B;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+        }
+        
+        .sidebar-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748B;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sidebar-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #1E293B;
+        }
+        
+        .sidebar-menu {
+            padding: 1rem 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .sidebar-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .sidebar-menu::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        .sidebar-menu::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+        }
+        
+        .sidebar-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        
+        .sidebar-menu-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .sidebar-menu-section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94A3B8;
+            margin-bottom: 0.5rem;
+        }
+        
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            padding: 0.875rem 1.5rem;
+            color: #1E293B;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 3px solid transparent;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            position: relative;
+        }
+        
+        .sidebar-menu-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, #6366F1 0%, #818CF8 100%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        
+        .sidebar-menu-item:hover {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.04) 100%);
+            color: #6366F1;
+            transform: translateX(3px);
+        }
+        
+        .sidebar-menu-item:hover::before {
+            opacity: 1;
+        }
+        
+        .sidebar-menu-item.active {
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.06) 100%);
+            color: #6366F1;
+            font-weight: 600;
+        }
+        
+        .sidebar-menu-item.active::before {
+            opacity: 1;
+        }
+        
+        .sidebar-menu-item i {
+            width: 24px;
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        
+        .sidebar-user {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.06);
+            margin-top: auto;
+        }
+        
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .sidebar-user-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366F1 0%, #818CF8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+        }
+        
+        .sidebar-user-details {
+            flex: 1;
+        }
+        
+        .sidebar-user-name {
+            font-weight: 600;
+            color: #1E293B;
+            font-size: 0.95rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .sidebar-user-role {
+            font-size: 0.8rem;
+            color: #64748B;
+        }
+        
+        .sidebar-logout {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .sidebar-logout:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        
+        .navbar {
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+            box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+            padding: 0.875rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+        
+        .navbar-brand {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1E293B !important;
+            text-shadow: none;
+        }
+        
+        .navbar-menu-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #1E293B;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            margin-right: 1rem;
+        }
+        
+        .navbar-menu-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        
+        .navbar-nav .nav-link {
+            color: #64748B !important;
+            font-weight: 500;
+            padding: 0.5rem 1rem !important;
+            transition: all 0.2s ease;
+            border-radius: 8px;
+            margin: 0 0.2rem;
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: #6366F1 !important;
+        }
+        
+        @@media (max-width: 991px) {
+            .sidebar {
+                width: 100%;
+                left: -100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">Kutuphane</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3>
+                <i class="fas fa-book-open me-2" style="color: #6366F1;"></i>
+                Menü
+            </h3>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
             </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Book" asp-action="Index">Kitaplar</a></li>
-                    @if (isAdmin)
-                    {
-                        <li class="nav-item"><a class="nav-link" asp-controller="Member" asp-action="Index">Üyeler</a></li>
-                        <li class="nav-item"><a class="nav-link" asp-controller="User" asp-action="Index">Kullanıcı Yönetimi</a></li>
-                    }
-                    <li class="nav-item"><a class="nav-link" asp-controller="Copy" asp-action="Index">Kopyalar</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Loan" asp-action="Index">Ödünç İşlemleri</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Index">Raporlar</a></li>
-                </ul>
-                
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="sidebar-menu-section">
+                <div class="sidebar-menu-section-title">Genel</div>
+                <a class="sidebar-menu-item" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-home"></i>
+                    Ana Sayfa
+                </a>
+                <a class="sidebar-menu-item" asp-controller="Book" asp-action="Index">
+                    <i class="fas fa-book"></i>
+                    Kitaplar
+                </a>
+                <a class="sidebar-menu-item" asp-controller="Copy" asp-action="Index">
+                    <i class="fas fa-copy"></i>
+                    Kopyalar
+                </a>
+                <a class="sidebar-menu-item" asp-controller="Reports" asp-action="Index">
+                    <i class="fas fa-chart-bar"></i>
+                    Raporlar
+                </a>
+            </div>
+            
+            @if (isLoggedIn)
+            {
+                <div class="sidebar-menu-section">
+                    <div class="sidebar-menu-section-title">Hesabım</div>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Member" && ViewContext.RouteData.Values["Action"]?.ToString() == "Profile" ? "active" : "")" asp-controller="Member" asp-action="Profile">
+                        <i class="fas fa-user-circle"></i>
+                        Profilim
+                    </a>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Loan" && ViewContext.RouteData.Values["Action"]?.ToString() == "BorrowBook" ? "active" : "")" asp-controller="Loan" asp-action="BorrowBook">
+                        <i class="fas fa-book-open"></i>
+                        Kitap Ödünç Al
+                    </a>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Book" && ViewContext.RouteData.Values["Action"]?.ToString() == "Favorites" ? "active" : "")" asp-controller="Book" asp-action="Favorites">
+                        <i class="fas fa-heart"></i>
+                        Favori Kitaplarım
+                    </a>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Loan" && ViewContext.RouteData.Values["Action"]?.ToString() == "MyLoans" ? "active" : "")" asp-controller="Loan" asp-action="MyLoans">
+                        <i class="fas fa-book-reader"></i>
+                        Ödünçlerim
+                    </a>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Payment" && ViewContext.RouteData.Values["Action"]?.ToString() == "OverdueLoans" ? "active" : "")" asp-controller="Payment" asp-action="OverdueLoans">
+                        <i class="fas fa-credit-card"></i>
+                        Gecikme Ödemeleri
+                    </a>
+                </div>
+            }
+            
+            @if (isAdmin)
+            {
+                <div class="sidebar-menu-section">
+                    <div class="sidebar-menu-section-title">Yönetim</div>
+                    <a class="sidebar-menu-item" asp-controller="Member" asp-action="Index">
+                        <i class="fas fa-users"></i>
+                        Üyeler
+                    </a>
+                    <a class="sidebar-menu-item" asp-controller="User" asp-action="Index">
+                        <i class="fas fa-user-cog"></i>
+                        Kullanıcı Yönetimi
+                    </a>
+                    <a class="sidebar-menu-item" asp-controller="Loan" asp-action="Index">
+                        <i class="fas fa-exchange-alt"></i>
+                        Ödünç İşlemleri
+                    </a>
+                    <a class="sidebar-menu-item" asp-controller="Loan" asp-action="PendingReturns">
+                        <i class="fas fa-clock"></i>
+                        Bekleyen İadeler
+                    </a>
+                    <a class="sidebar-menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Backup" ? "active" : "")" asp-controller="Backup" asp-action="Index">
+                        <i class="fas fa-database"></i>
+                        Yedekleme
+                    </a>
+                </div>
+            }
+            
+            @if (!isLoggedIn)
+            {
+                <div class="sidebar-menu-section">
+                    <div class="sidebar-menu-section-title">Giriş</div>
+                    <a class="sidebar-menu-item" asp-controller="Member" asp-action="Register">
+                        <i class="fas fa-user-plus"></i>
+                        Üye Ol
+                    </a>
+                    <a class="sidebar-menu-item" asp-controller="Auth" asp-action="Login">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Giriş Yap
+                    </a>
+                </div>
+            }
+        </nav>
+        
+        @if (isLoggedIn)
+        {
+            <div class="sidebar-user">
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-avatar">
+                        @(currentUser?.FullName?.Substring(0, 1).ToUpper() ?? "U")
+                    </div>
+                    <div class="sidebar-user-details">
+                        <div class="sidebar-user-name">@currentUser?.FullName</div>
+                        <div class="sidebar-user-role">
+                            @if (isAdmin)
+                            {
+                                <span style="color: #F59E0B;">Yönetici</span>
+                            }
+                            else
+                            {
+                                <span>Üye</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
+                    <button type="submit" class="sidebar-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Çıkış Yap
+                    </button>
+                </form>
+            </div>
+        }
+    </aside>
+    
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <button class="navbar-menu-btn" id="sidebarToggle" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">
+                <i class="fas fa-book-open me-2" style="color: #6366F1;"></i>
+                Kütüphane
+            </a>
+            <div class="ms-auto d-flex align-items-center">
                 @if (isLoggedIn)
                 {
-                    <ul class="navbar-nav">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user me-1"></i>
-                                @currentUser?.FullName
-                                @if (isAdmin)
-                                {
-                                    <span class="badge bg-warning text-dark ms-1">Yönetici</span>
-                                }
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profil</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form asp-controller="Auth" asp-action="Logout" method="post" class="d-inline">
-                                        <button type="submit" class="dropdown-item">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    </ul>
+                    <span class="text-muted me-3 d-none d-md-inline" style="font-weight: 500;">
+                        <i class="fas fa-user me-2" style="color: #6366F1;"></i>
+                        @currentUser?.FullName
+                        @if (isAdmin)
+                        {
+                            <span class="badge" style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); color: white; margin-left: 0.5rem;">Yönetici</span>
+                        }
+                    </span>
                 }
                 else
                 {
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" asp-controller="Auth" asp-action="Login">
-                                <i class="fas fa-sign-in-alt me-1"></i>Giriş Yap
-                            </a>
-                        </li>
-                    </ul>
+                    <a class="btn btn-outline-primary btn-sm me-2" asp-controller="Member" asp-action="Register" style="border-radius: 20px;">
+                        <i class="fas fa-user-plus me-1"></i>Üye Ol
+                    </a>
+                    <a class="btn btn-primary btn-sm" asp-controller="Auth" asp-action="Login" style="border-radius: 20px;">
+                        <i class="fas fa-sign-in-alt me-1"></i>Giriş Yap
+                    </a>
                 }
             </div>
         </div>
@@ -134,8 +891,58 @@
         </div>
     </footer>
 
+    <!-- jQuery (Select2 dependency) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Select2 Türkçe Dil Desteği -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/tr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Select2 Initialization Script -->
+    <script src="~/js/select2-init.js"></script>
+    <script>
+        // Sidebar Toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            
+            function openSidebar() {
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            sidebarToggle.addEventListener('click', openSidebar);
+            sidebarClose.addEventListener('click', closeSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            
+            // Close sidebar when clicking on a menu item (mobile)
+            if (window.innerWidth <= 991) {
+                const menuItems = document.querySelectorAll('.sidebar-menu-item');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', closeSidebar);
+                });
+            }
+            
+            // Update active menu item based on current page
+            const currentPath = window.location.pathname;
+            const menuItems = document.querySelectorAll('.sidebar-menu-item');
+            menuItems.forEach(item => {
+                if (item.getAttribute('href') === currentPath || currentPath.startsWith(item.getAttribute('href'))) {
+                    item.classList.add('active');
+                }
+            });
+        });
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

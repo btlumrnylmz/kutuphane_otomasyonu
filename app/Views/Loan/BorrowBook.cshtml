@@ -1,0 +1,111 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Kitap Ödünç Al";
+    var member = ViewBag.Member as KutuphaneOtomasyonu.Models.Member;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 style="font-family: 'Playfair Display', serif; color: #1E293B; font-size: 2.5rem; margin: 0;">
+                <i class="fas fa-book-reader me-2" style="color: #6366F1;"></i>
+                Kitap Ödünç Al
+            </h1>
+            @if (member != null)
+            {
+                <p class="text-muted mt-2 mb-0">Hoş geldiniz, <strong>@member.FullName</strong>!</p>
+            }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 10px;">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="card-body p-4">
+            <h5 class="card-title mb-4" style="color: #1E293B;">
+                <i class="fas fa-plus-circle me-2" style="color: #6366F1;"></i>
+                Yeni Kitap Ödünç Al
+            </h5>
+            
+            <form asp-action="BorrowBook" method="post" class="row g-3">
+                @Html.AntiForgeryToken()
+                
+                <div class="col-md-12">
+                    <label for="copyId" class="form-label">
+                        <i class="fas fa-book me-2"></i>
+                        <strong>Uygun Kopya</strong>
+                    </label>
+                    <select name="copyId" id="copyId" class="form-select" required>
+                        <option value="">-- Kitap Seçin --</option>
+                        @if (ViewBag.AvailableCopies != null)
+                        {
+                            @foreach (var item in (SelectList)ViewBag.AvailableCopies)
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
+                        }
+                    </select>
+                    <small class="form-text text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Sadece durumu 'available' olan kopyalar listelenir.
+                    </small>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary btn-lg w-100" style="border-radius: 10px; padding: 0.75rem 1.5rem;">
+                        <i class="fas fa-hand-holding me-2"></i>
+                        Kitap Ödünç Al
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm" style="border-radius: 15px;">
+                <div class="card-body">
+                    <h5 class="card-title mb-3" style="color: #1E293B;">
+                        <i class="fas fa-info-circle me-2" style="color: #6366F1;"></i>
+                        Ödünç Alma Kuralları
+                    </h5>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            En fazla <strong>3 kitap</strong> ödünç alabilirsiniz
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            Kitapları <strong>14 gün</strong> içinde iade etmeniz gerekir
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            60 günden fazla gecikmiş ve ödeme yapılmamış kitaplarınız varsa yeni kitap alamazsınız
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle me-2" style="color: #10B981;"></i>
+                            Ödünçlerinizi <a asp-action="MyLoans" class="text-primary">Ödünçlerim</a> sayfasından görüntüleyebilirsiniz
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,104 @@
+================================================================================
+WORD DÖKÜMANI İÇİN TABLO İÇERİKLERİ
+================================================================================
+
+Bu içerikleri Word dokümanınızdaki tablolara kopyalayabilirsiniz.
+
+================================================================================
+BÖLÜM 1: AKIŞ DİYAGRAMLARI
+================================================================================
+
+Ödünç Verme ve İade Akışları
+
+Ödünç Verme Akışı:
+1. BAŞLA
+2. Üye ID ve Kopya ID al
+3. Transaction başlat
+4. Kopya kontrolü: Kopya mevcut ve 'Available' durumunda mı?
+   - HAYIR → Hata: "Kopya bulunamadı veya müsait değil" → ROLLBACK → BİTİR
+5. Üye kontrolü: Üye mevcut ve 'Active' durumunda mı?
+   - HAYIR → Hata: "Üye bulunamadı veya aktif değil" → ROLLBACK → BİTİR
+6. Aktif ödünç kontrolü: Üyenin aktif ödünç sayısı < 3 mü?
+   - HAYIR → Hata: "Ödünç limiti dolmuş (maksimum 3)" → ROLLBACK → BİTİR
+7. Loan kaydı oluştur (DueAt = LoanedAt + 14 gün)
+8. Kopya durumunu 'Loaned' yap
+9. COMMIT → Başarı mesajı döndür
+10. BİTİR
+
+İade Alma Akışı:
+1. BAŞLA
+2. Loan ID al
+3. Transaction başlat
+4. Loan kaydı kontrolü: Loan mevcut ve iade edilmemiş mi?
+   - HAYIR → Hata mesajı → ROLLBACK → BİTİR
+5. ReturnedAt = Şimdiki zaman (Trigger tetiklenecek)
+6. Kopya durumunu 'Available' yap
+7. COMMIT → Başarı mesajı döndür
+8. BİTİR
+
+================================================================================
+BÖLÜM 2: SAKLI YORDAMLAR TABLOSU
+================================================================================
+
+Tabloyu Word'de 4 sütunlu olarak oluşturun ve aşağıdaki satırları ekleyin:
+
+SATIR 1 (BAŞLIK):
+Yordam Adı | Parametreler | İş Mantığı Özeti | Hata Durumları
+
+SATIR 2:
+sp_borrow_copy | @member_id INT, @copy_id INT | 1. Kopyanın mevcut ve 'Available' durumunda olduğunu kontrol eder
+2. Üyenin mevcut ve 'Active' durumunda olduğunu kontrol eder
+3. Üyenin aktif ödünç sayısını kontrol eder (maksimum 3)
+4. Tüm kontroller başarılıysa Loan kaydı oluşturur (DueAt = LoanedAt + 14 gün)
+5. Kopya durumunu 'Loaned' olarak günceller
+6. Transaction içinde atomik işlem yapar | • Kopya bulunamadı veya müsait değil
+• Üye bulunamadı veya aktif değil
+• Üyenin aktif ödünç limiti dolmuş (maksimum 3)
+• Transaction hataları (rollback)
+
+SATIR 3:
+sp_return_copy | @loan_id INT | 1. Loan kaydının mevcut olduğunu kontrol eder
+2. Loan kaydının daha önce iade edilmediğini kontrol eder
+3. ReturnedAt alanını güncel tarih/saat ile günceller (trigger tetiklenecek)
+4. Kopya durumunu 'Available' olarak günceller
+5. Transaction içinde atomik işlem yapar | • Ödünç kaydı bulunamadı
+• Bu ödünç kaydı zaten iade edilmiş
+• Transaction hataları (rollback)
+
+================================================================================
+BÖLÜM 3: GÖRÜNÜMLER (VIEWS) TABLOSU
+================================================================================
+
+Tabloyu Word'de 4 sütunlu olarak oluşturun ve aşağıdaki satırları ekleyin:
+
+SATIR 1 (BAŞLIK):
+Görünüm Adı | Sütunlar | Kaynak Sorgu (kısa) | Kullanım
+
+SATIR 2:
+vw_active_loans | member_name, book_title, due_at, delay_days, LoanId, LoanedAt, ShelfLocation | SELECT m.FullName AS member_name, b.Title AS book_title, l.DueAt AS due_at, CASE WHEN l.DueAt < GETUTCDATE() THEN DATEDIFF(DAY, l.DueAt, GETUTCDATE()) ELSE 0 END AS delay_days, l.LoanId, l.LoanedAt, c.ShelfLocation FROM Loans l INNER JOIN Members m ON m.MemberId = l.MemberId INNER JOIN Copies c ON c.CopyId = l.CopyId INNER JOIN Books b ON b.BookId = c.BookId WHERE l.ReturnedAt IS NULL | Aktif ödünçleri listelemek için kullanılır. Üye adı, kitap başlığı, vade tarihi ve gecikme gün sayısını gösterir.
+
+SATIR 3:
+vw_top_books_last30 | title, borrow_count | SELECT TOP (10) b.Title AS title, COUNT(*) AS borrow_count FROM Loans l INNER JOIN Copies c ON c.CopyId = l.CopyId INNER JOIN Books b ON b.BookId = c.BookId WHERE l.LoanedAt >= DATEADD(DAY, -30, GETUTCDATE()) GROUP BY b.Title ORDER BY COUNT(*) DESC, b.Title ASC | Son 30 günde en çok ödünç alınan ilk 10 kitabı listeler. Raporlama sayfasında kullanılır.
+
+================================================================================
+BÖLÜM 4: RAPOR 1 — SON 30 GÜN TOP 10 KİTAP TABLOSU
+================================================================================
+
+Tabloyu Word'de 4 sütunlu olarak oluşturun ve aşağıdaki satırları ekleyin:
+
+SATIR 1 (BAŞLIK):
+Sorgu | Filtre | Çıktı Alanları | Örnek Sonuç
+
+SATIR 2:
+SELECT TOP (10) b.Title AS title, COUNT(*) AS borrow_count FROM dbo.Loans l INNER JOIN dbo.Copies c ON c.CopyId = l.CopyId INNER JOIN dbo.Books b ON b.BookId = c.BookId WHERE l.LoanedAt >= DATEADD(DAY, -30, GETUTCDATE()) GROUP BY b.Title ORDER BY COUNT(*) DESC, b.Title ASC | • l.LoanedAt >= Son 30 gün içinde
+• Sadece ödünç alınan kitaplar | • title: Kitap başlığı (NVARCHAR)
+• borrow_count: Ödünç sayısı (INT) | Örnek 1: title: "Suç ve Ceza", borrow_count: 15
+Örnek 2: title: "Simyacı", borrow_count: 12
+Örnek 3: title: "Beyaz Zambaklar Ülkesinde", borrow_count: 10
+(En çok ödünç alınan kitap en üstte, aynı sayıda ödünç alınan kitaplarda alfabetik sıralama)
+
+================================================================================
+NOT: Bu içerikleri Word dokümanınızdaki ilgili tablolara kopyalayıp yapıştırabilirsiniz.
+Tablo formatını korumak için "Paste Special" > "Keep Source Formatting" kullanın.
+================================================================================
+

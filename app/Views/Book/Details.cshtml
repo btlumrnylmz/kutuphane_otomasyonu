@@ -42,6 +42,15 @@
                                     </dt>
                                     <dd class="col-sm-9">@(Model.PublishYear?.ToString() ?? "Belirtilmemiş")</dd>
                                     
+                                    @if (Model.PageCount.HasValue)
+                                    {
+                                        <dt class="col-sm-3">
+                                            <i class="fas fa-file-alt me-1"></i>
+                                            Sayfa Sayısı
+                                        </dt>
+                                        <dd class="col-sm-9">@Model.PageCount sayfa</dd>
+                                    }
+                                    
                                     <dt class="col-sm-3">
                                         <i class="fas fa-tags me-1"></i>
                                         Kategori
@@ -65,7 +74,14 @@
                         <div class="col-md-4">
                             <div class="card bg-light">
                                 <div class="card-body text-center">
-                                    <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                                    @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                                    {
+                                        <img src="@Model.CoverImageUrl" alt="@Model.Title" class="img-fluid rounded mb-3" style="max-height: 300px; width: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1);" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                                    }
                                     <h6 class="card-title">Kitap Durumu</h6>
                                     @{
                                         var availableCopies = Model.Copies?.Count(c => c.Status == KutuphaneOtomasyonu.Models.CopyStatus.Available) ?? 0;
@@ -186,6 +202,27 @@
                         
                         @if (isLoggedIn)
                         {
+                            var isFavorite = ViewBag.IsFavorite as bool? ?? false;
+                            if (isFavorite)
+                            {
+                                <form asp-action="RemoveFromFavorites" method="post" class="d-inline">
+                                    <input type="hidden" name="bookId" value="@Model.BookId" />
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="fas fa-heart me-1"></i>
+                                        Favorilerden Çıkar
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="AddToFavorites" method="post" class="d-inline">
+                                    <input type="hidden" name="bookId" value="@Model.BookId" />
+                                    <button type="submit" class="btn btn-warning">
+                                        <i class="far fa-heart me-1"></i>
+                                        Favorilere Ekle
+                                    </button>
+                                </form>
+                            }
                             <a class="btn btn-primary" asp-controller="Loan" asp-action="Index">
                                 <i class="fas fa-book-reader me-1"></i>
                                 Ödünç Al
