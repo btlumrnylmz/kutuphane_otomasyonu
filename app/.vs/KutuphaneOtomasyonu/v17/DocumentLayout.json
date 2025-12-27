@@ -1,9 +1,9 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\",
+  "WorkspaceRootPath": "C:\\Users\\betul\\Desktop\\kutuphane_otomasyonu\\app\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{74659818-5EFB-C24E-D7AD-5D691636A44E}|KutuphaneOtomasyonu.csproj|c:\\users\\betul\\kutuphane_otomasyonu_vtys2\\app\\controllers\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{74659818-5EFB-C24E-D7AD-5D691636A44E}|KutuphaneOtomasyonu.csproj|c:\\users\\betul\\desktop\\kutuphane_otomasyonu\\app\\controllers\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{74659818-5EFB-C24E-D7AD-5D691636A44E}|KutuphaneOtomasyonu.csproj|solutionrelative:controllers\\bookcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -20,11 +20,11 @@
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "BookController.cs",
-              "DocumentMoniker": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\Controllers\\BookController.cs",
+              "DocumentMoniker": "C:\\Users\\betul\\Desktop\\kutuphane_otomasyonu\\app\\Controllers\\BookController.cs",
               "RelativeDocumentMoniker": "Controllers\\BookController.cs",
-              "ToolTip": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\Controllers\\BookController.cs",
+              "ToolTip": "C:\\Users\\betul\\Desktop\\kutuphane_otomasyonu\\app\\Controllers\\BookController.cs",
               "RelativeToolTip": "Controllers\\BookController.cs",
-              "ViewState": "AgIAAJkAAAAAAAAAAAAiwEAAAAANAAAAAAAAAA==",
+              "ViewState": "AgIAAI4AAAAAAAAAAAAcwEAAAAANAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-09T19:42:42.099Z",
               "EditorCaption": ""

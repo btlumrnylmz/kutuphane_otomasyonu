@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9ftu7C9GX3c=",
+  "dgSpecHash": "YDvc+cF+/ew=",
   "success": true,
-  "projectFilePath": "C:\\Users\\betul\\kutuphane_otomasyonu_vtys2\\app\\KutuphaneOtomasyonu.csproj",
+  "projectFilePath": "C:\\Users\\betul\\Desktop\\kutuphane_otomasyonu\\app\\KutuphaneOtomasyonu.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\betul\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\betul\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

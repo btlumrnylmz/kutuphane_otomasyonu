@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using KutuphaneOtomasyonu.Attributes;
 
 namespace KutuphaneOtomasyonu.Models
 {
@@ -12,6 +13,7 @@ namespace KutuphaneOtomasyonu.Models
         /// </summary>
         [Required(ErrorMessage = "Ad Soyad zorunludur.")]
         [StringLength(150, ErrorMessage = "Ad Soyad en fazla 150 karakter olabilir.")]
+        [TextOnly(ErrorMessage = "Lütfen geçerli bir isim girin. Sadece rakamlardan oluşan değerler kabul edilmez.")]
         [Display(Name = "Ad Soyad")]
         public string FullName { get; set; } = string.Empty;
 

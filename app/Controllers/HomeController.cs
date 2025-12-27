@@ -143,24 +143,50 @@ namespace KutuphaneOtomasyonu.Controllers
         [HttpGet]
         public async Task<IActionResult> GetChartData(string chartType)
         {
-            if (!_authService.IsAdmin())
+            if (!_authService.IsLoggedIn())
             {
                 return Unauthorized();
             }
 
-            var cacheKey = CacheService.CreateKey("dashboard", "charts", chartType);
-            var data = await _cacheService.GetOrSetAsync(cacheKey, async () =>
-            {
-                return chartType switch
-                {
-                    "monthlyLoans" => await GetMonthlyLoansData(),
-                    "categoryDistribution" => await GetCategoryDistributionData(),
-                    "loanTrend" => await GetLoanTrendData(),
-                    _ => null
-                };
-            }, TimeSpan.FromMinutes(10));
+            var currentUser = _authService.GetCurrentUser();
+            var isAdmin = _authService.IsAdmin();
+            var member = await _context.Members
+                .FirstOrDefaultAsync(m => m.Email.ToLower() == currentUser.Email.ToLower());
 
-            return Json(data);
+            if (isAdmin)
+            {
+                var cacheKey = CacheService.CreateKey("dashboard", "charts", chartType);
+                var data = await _cacheService.GetOrSetAsync(cacheKey, async () =>
+                {
+                    return chartType switch
+                    {
+                        "monthlyLoans" => await GetMonthlyLoansData(),
+                        "categoryDistribution" => await GetCategoryDistributionData(),
+                        "loanTrend" => await GetLoanTrendData(),
+                        _ => null
+                    };
+                }, TimeSpan.FromMinutes(10));
+
+                return Json(data);
+            }
+            else if (member != null)
+            {
+                // Kullanıcı için grafik verileri
+                var cacheKey = CacheService.CreateKey("dashboard", "user", currentUser.UserId.ToString(), chartType);
+                var data = await _cacheService.GetOrSetAsync(cacheKey, async () =>
+                {
+                    return chartType switch
+                    {
+                        "monthlyLoans" => await GetUserMonthlyLoansData(member.MemberId),
+                        "categoryDistribution" => await GetUserCategoryDistributionData(member.MemberId),
+                        _ => null
+                    };
+                }, TimeSpan.FromMinutes(5));
+
+                return Json(data);
+            }
+
+            return Unauthorized();
         }
 
         private async Task<object> GetMonthlyLoansData()
@@ -222,6 +248,85 @@ namespace KutuphaneOtomasyonu.Controllers
             {
                 labels = dailyData.Select(x => x.Date.ToString("MM-dd")).ToArray(),
                 data = dailyData.Select(x => x.Count).ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Kullanıcının aylık ödünç istatistiklerini döndürür.
+        /// </summary>
+        private async Task<object> GetUserMonthlyLoansData(int memberId)
+        {
+            var sixMonthsAgo = DateTime.UtcNow.AddMonths(-6);
+            var monthlyData = await _context.Loans
+                .Where(l => l.MemberId == memberId && l.LoanedAt >= sixMonthsAgo)
+                .GroupBy(l => new { Year = l.LoanedAt.Year, Month = l.LoanedAt.Month })
+                .Select(g => new
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Label = $"{g.Key.Year}-{g.Key.Month:D2}",
+                    Count = g.Count()
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync();
+
+            // Son 6 ayın tümünü ekle (veri yoksa 0)
+            var allMonths = new List<string>();
+            var allCounts = new List<int>();
+            var monthNames = new[] { "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", 
+                                     "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık" };
+            
+            for (int i = 5; i >= 0; i--)
+            {
+                var date = DateTime.UtcNow.AddMonths(-i);
+                var label = $"{monthNames[date.Month - 1]} {date.Year}";
+                allMonths.Add(label);
+                var existing = monthlyData.FirstOrDefault(x => x.Year == date.Year && x.Month == date.Month);
+                allCounts.Add(existing?.Count ?? 0);
+            }
+
+            return new
+            {
+                labels = allMonths.ToArray(),
+                data = allCounts.ToArray()
+            };
+        }
+
+        /// <summary>
+        /// Kullanıcının ödünç aldığı kitapların kategori dağılımını döndürür.
+        /// </summary>
+        private async Task<object> GetUserCategoryDistributionData(int memberId)
+        {
+            var categoryData = await _context.Loans
+                .Where(l => l.MemberId == memberId)
+                .Include(l => l.Copy)
+                .ThenInclude(c => c.Book)
+                .Where(l => l.Copy != null && l.Copy.Book != null && !string.IsNullOrEmpty(l.Copy.Book.Category))
+                .GroupBy(l => l.Copy.Book.Category)
+                .Select(g => new
+                {
+                    Category = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(x => x.Count)
+                .Take(10)
+                .ToListAsync();
+
+            // Eğer veri yoksa boş dizi döndür
+            if (!categoryData.Any())
+            {
+                return new
+                {
+                    labels = new string[0],
+                    data = new int[0]
+                };
+            }
+
+            return new
+            {
+                labels = categoryData.Select(x => x.Category).ToArray(),
+                data = categoryData.Select(x => x.Count).ToArray()
             };
         }
     }
